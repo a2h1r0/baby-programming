@@ -4,6 +4,8 @@
 
 ゲーム本体は **`index.html` 1ファイル**です。HTML・CSS・JavaScriptとイラスト用のインラインSVGを含み、外部ライブラリ、画像のダウンロード、サーバー、ログインは必要ありません。個人情報の取得やプレイ記録の保存は行いません。
 
+Web公開先：**https://atsuhi.ro/apps/baby-programming/**。`main`の更新後、テストに成功するとGitHub Actionsから個人サイトへ自動反映します。[公開・同期の仕組みと確認方法](docs/publishing.md)を参照してください。
+
 ## 起動方法（Windows 8）
 
 1. このリポジトリをZIPで入手して展開するか、配布された `index.html` をPCのフォルダーに保存します。準備後はインターネット接続不要です。
@@ -72,7 +74,7 @@
 Node.jsがある開発環境では、外部パッケージを追加せずに次の確認を実行できます。ゲームを遊ぶPCにNode.jsは不要です。
 
 ```text
-node tests/game.test.cjs
+node --test
 ```
 
 変更時はこの確認に加え、ブラウザーで `index.html` を直接開き、両モード・命令の編集・再挑戦・タッチ入力・1024×768表示・オフライン起動を確認してください。検証条件と結果は `docs/testing.md` に残します。
