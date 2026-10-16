@@ -186,14 +186,20 @@ test('success uses the final square; command order and overshooting change the r
   assert.equal(game.outcome(run(turning, ['R', 'F', 'F']), turning), 'retry');
 });
 
-test('the deliverable remains a single offline HTML file', () => {
-  const allowedSvgNamespaceRemoved = html.replace(/https?:\/\/www\.w3\.org\/2000\/svg/g, 'SVG_NAMESPACE');
-  assert.doesNotMatch(allowedSvgNamespaceRemoved, /https?:\/\//i);
-  assert.doesNotMatch(html, /\b(?:src|srcset)\s*=/i);
+test('the game needs only its HTML file; sharing metadata and the favicon are optional for offline play', () => {
+  const runtimeHtml = html.replace(/<meta\b[^>]*>/gi, '')
+    .replace(/<link\b[^>]*\brel\s*=\s*["'](?:canonical|icon)["'][^>]*>/gi, '');
+  const allowedSvgNamespaceRemoved = runtimeHtml.replace(/https?:\/\/www\.w3\.org\/2000\/svg/g, 'SVG_NAMESPACE');
+  assert.doesNotMatch(allowedSvgNamespaceRemoved, /https?:\/\//i, 'external URLs require an offline dependency review');
+  assert.doesNotMatch(html, /\b(?:src|srcset)\s*=/i, 'all visuals and scripts must be inline');
   assert.doesNotMatch(html, /<link\b[^>]*rel\s*=\s*["']?stylesheet/i);
   assert.doesNotMatch(html, /@import\b/i);
-  for (const reference of html.matchAll(/\bhref\s*=\s*["']([^"']*)["']/gi)) assert.match(reference[1], /^#/);
-  for (const reference of html.matchAll(/\burl\s*\(\s*([^)]+)\)/gi)) assert.match(reference[1].replace(/["'\s]/g, ''), /^#/);
+  for (const reference of runtimeHtml.matchAll(/\bhref\s*=\s*["']([^"']*)["']/gi)) {
+    assert.match(reference[1], /^#/, 'links may reference only content in this HTML file');
+  }
+  for (const reference of html.matchAll(/\burl\s*\(\s*([^)]+)\)/gi)) {
+    assert.match(reference[1].replace(/["'\s]/g, ''), /^#/, 'CSS/SVG URLs must reference inline definitions');
+  }
   assert.doesNotMatch(html, /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\s*\(/);
   assert.doesNotMatch(html, /\b(?:localStorage|sessionStorage|indexedDB)\b|document\s*\.\s*cookie/);
   assert.doesNotMatch(html, /<script\b[^>]*type\s*=\s*["']module["']/i);
@@ -356,6 +362,7 @@ test('UI explains the game to parents on every visit and requires starting befor
   assert.equal(app.element('game').getAttribute('aria-hidden'), 'true');
   assert.equal(app.focused(), app.element('intro-title'));
   assert.equal(app.element('start').disabled, false);
+  assert.equal(app.element('start').textContent, 'スタート');
   for (const id of ['forward', 'left', 'right', 'go', 'undo', 'restart']) {
     assert.equal(app.element(id).disabled, true);
     app.click(id);
