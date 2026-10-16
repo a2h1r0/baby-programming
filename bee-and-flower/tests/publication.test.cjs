@@ -4,9 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const repositoryRoot = path.join(__dirname, '..');
-const sourcePath = path.join(repositoryRoot, 'index.html');
-const publicUrl = 'https://atsuhi.ro/apps/baby-programming/';
+const applicationRoot = path.join(__dirname, '..');
+const sourcePath = path.join(applicationRoot, 'index.html');
+const publicUrl = 'https://atsuhi.ro/apps/baby-programming/bee-and-flower/';
 
 function decodeEntities(value) {
   return value.replace(/&(#x[\da-f]+|#\d+|amp|quot|apos|lt|gt);/gi, (_, entity) => {
@@ -74,7 +74,7 @@ test('published HTML identifies one canonical public URL and complete Japanese s
   assert.equal(icons.length, 1);
   assert.equal(icons[0].href, 'favicon.ico');
   assert.equal(icons[0].type, 'image/x-icon');
-  const image = fs.readFileSync(path.join(repositoryRoot, 'image.png'));
+  const image = fs.readFileSync(path.join(applicationRoot, 'image.png'));
   assert.equal(Number(metadata(rendered, 'og:image:width')[0].content), image.readUInt32BE(16));
   assert.equal(Number(metadata(rendered, 'og:image:height')[0].content), image.readUInt32BE(20));
   for (const tag of tags(rendered, 'meta')) {
