@@ -76,7 +76,14 @@ test('published HTML identifies one canonical public URL and complete Japanese s
     'og:title': publication.TITLE,
     'og:description': publication.DESCRIPTION,
     'og:type': 'website',
-    'og:locale': 'ja_JP'
+    'og:locale': 'ja_JP',
+    'og:image': publicUrl + 'image.png',
+    'og:image:type': 'image/png',
+    'og:image:width': '1731',
+    'og:image:height': '909',
+    'og:image:alt': 'はちさんと おはな | はじめてのプログラミング',
+    'twitter:card': 'summary_large_image',
+    'twitter:image': publicUrl + 'image.png'
   };
   for (const [key, value] of Object.entries(expected)) {
     const matches = metadata(rendered, key);
@@ -86,6 +93,13 @@ test('published HTML identifies one canonical public URL and complete Japanese s
   const siteName = metadata(rendered, 'og:site_name');
   assert.equal(siteName.length, 1);
   assert.ok(siteName[0].content.length > 0);
+  const icons = tags(rendered, 'link').map(attributes).filter(tag => tag.rel === 'icon');
+  assert.equal(icons.length, 1);
+  assert.equal(icons[0].href, 'favicon.ico');
+  assert.equal(icons[0].type, 'image/x-icon');
+  const image = fs.readFileSync(path.join(repositoryRoot, 'image.png'));
+  assert.equal(Number(metadata(rendered, 'og:image:width')[0].content), image.readUInt32BE(16));
+  assert.equal(Number(metadata(rendered, 'og:image:height')[0].content), image.readUInt32BE(20));
   for (const tag of tags(rendered, 'meta')) {
     assert.doesNotMatch(tag, /&(?!#\d+;|#x[\da-f]+;|amp;|quot;|apos;|lt;|gt;)/i,
       'metadata must escape HTML entities');
@@ -107,15 +121,19 @@ test('publication replaces the source title while preserving body and script byt
 test('rebuilding publication replaces inherited search metadata and is idempotent', () => {
   const fixture = '<!DOCTYPE html><html lang="ja"><head><title>Old title</title>' +
     '<link rel="canonical" href="https://old.example/">' +
+    '<link rel="shortcut icon" href="https://old.example/favicon.ico">' +
     '<meta name="description" content="Obsolete description">' +
     '<meta name="robots" content="noindex">' +
     '<meta property="og:title" content="Obsolete sharing title">' +
     '<meta property="og:url" content="https://old.example/">' +
+    '<meta property="og:image" content="https://old.example/image.png">' +
+    '<meta name="twitter:card" content="summary">' +
+    '<meta name="twitter:image" content="https://old.example/image.png">' +
     '</head><body><p>Keep this game.</p></body></html>';
   const rendered = publication.renderPublication(fixture);
   assert.doesNotMatch(rendered, /old\.example|Obsolete|noindex/);
   assert.equal(tags(rendered, 'link').map(attributes).filter(tag => tag.rel === 'canonical').length, 1);
-  for (const key of ['description', 'robots', 'og:title', 'og:url']) {
+  for (const key of ['description', 'robots', 'og:title', 'og:url', 'og:image', 'twitter:card', 'twitter:image']) {
     assert.equal(metadata(rendered, key).length, 1, key + ' must not be duplicated');
   }
   assert.equal(publication.renderPublication(rendered), rendered);
@@ -148,13 +166,17 @@ test('publication metadata introduces no external runtime assets or network depe
   assert.doesNotMatch(scripts(rendered).join('\n'), /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource)\b/);
 });
 
-test('the build function creates a nested output directory with exactly the published HTML', t => {
+test('the build function creates the published HTML and copies both image assets unchanged', t => {
   const directory = temporaryDirectory(t);
   const outputDirectory = path.join(directory, 'apps', 'baby-programming');
   const original = fs.readFileSync(sourcePath);
   const result = publication.buildPublication(outputDirectory);
   assert.equal(result, path.join(outputDirectory, 'index.html'));
-  assert.deepEqual(fs.readdirSync(outputDirectory), ['index.html']);
+  assert.deepEqual(fs.readdirSync(outputDirectory).sort(), ['favicon.ico', 'image.png', 'index.html']);
+  for (const asset of ['favicon.ico', 'image.png']) {
+    assert.deepEqual(fs.readFileSync(path.join(outputDirectory, asset)),
+      fs.readFileSync(path.join(repositoryRoot, asset)));
+  }
   assert.equal(fs.readFileSync(result, 'utf8'), publication.renderPublication(original.toString('utf8')));
   assert.deepEqual(fs.readFileSync(sourcePath), original);
 });
@@ -169,7 +191,7 @@ test('the command line builds from an unrelated working directory and leaves the
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.deepEqual(fs.readdirSync(directory), ['published']);
-  assert.deepEqual(fs.readdirSync(outputDirectory), ['index.html']);
+  assert.deepEqual(fs.readdirSync(outputDirectory).sort(), ['favicon.ico', 'image.png', 'index.html']);
   assert.equal(fs.readFileSync(path.join(outputDirectory, 'index.html'), 'utf8'),
     publication.renderPublication(original.toString('utf8')));
   assert.deepEqual(fs.readFileSync(sourcePath), original);

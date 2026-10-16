@@ -1,4 +1,4 @@
-/* Publication adds search metadata without changing the offline game or its scripts. */
+/* Publication adds search/sharing metadata and assets without changing the offline game. */
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -23,17 +23,26 @@ function renderPublication(sourceHtml) {
 
   let head = heads[0].replace(/<title\b[^>]*>[\s\S]*?<\/title\s*>/i, '<title>' + escapeHtml(TITLE) + '</title>');
   head = head.replace(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>\s*/gi, '');
-  head = head.replace(/<meta\b[^>]*(?:\bname\s*=\s*["'](?:description|robots)["']|\bproperty\s*=\s*["']og:[^"']+["'])[^>]*>\s*/gi, '');
+  head = head.replace(/<link\b[^>]*\brel\s*=\s*["'](?:shortcut\s+)?icon["'][^>]*>\s*/gi, '');
+  head = head.replace(/<meta\b[^>]*(?:\bname\s*=\s*["'](?:description|robots|twitter:[^"']+)["']|\bproperty\s*=\s*["']og:[^"']+["'])[^>]*>\s*/gi, '');
   const metadata = [
     '<link rel="canonical" href="' + escapeHtml(PUBLIC_URL) + '">',
+    '<link rel="icon" href="favicon.ico" type="image/x-icon">',
     '<meta name="description" content="' + escapeHtml(DESCRIPTION) + '">',
     '<meta name="robots" content="index, follow">',
     '<meta property="og:type" content="website">',
     '<meta property="og:title" content="' + escapeHtml(TITLE) + '">',
     '<meta property="og:description" content="' + escapeHtml(DESCRIPTION) + '">',
     '<meta property="og:url" content="' + escapeHtml(PUBLIC_URL) + '">',
+    '<meta property="og:image" content="' + escapeHtml(PUBLIC_URL + 'image.png') + '">',
+    '<meta property="og:image:type" content="image/png">',
+    '<meta property="og:image:width" content="1731">',
+    '<meta property="og:image:height" content="909">',
+    '<meta property="og:image:alt" content="はちさんと おはな | はじめてのプログラミング">',
     '<meta property="og:locale" content="ja_JP">',
-    '<meta property="og:site_name" content="Atsuhiro Fujii">'
+    '<meta property="og:site_name" content="Atsuhiro Fujii">',
+    '<meta name="twitter:card" content="summary_large_image">',
+    '<meta name="twitter:image" content="' + escapeHtml(PUBLIC_URL + 'image.png') + '">'
   ].join('\n');
   head = head.replace(/\s*<\/head\s*>/i, '\n' + metadata + '\n</head>');
   return sourceHtml.replace(heads[0], () => head);
@@ -50,6 +59,9 @@ function buildPublication(outputDirectory) {
   fs.mkdirSync(destination, { recursive: true });
   const outputPath = path.join(destination, 'index.html');
   fs.writeFileSync(outputPath, html, 'utf8');
+  for (const asset of ['favicon.ico', 'image.png']) {
+    fs.copyFileSync(path.join(ROOT, asset), path.join(destination, asset));
+  }
   return outputPath;
 }
 
