@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
-const PUBLIC_URL = 'https://atsuhi.ro/apps/baby-programming/';
+const PUBLIC_URL = 'https://atsuhi.ro/apps/baby-programming/bee-and-flower/';
 const TITLE = '4〜6歳向け無料プログラミングゲーム｜はちさんと おはな';
 const DESCRIPTION = '4〜6歳の幼児が、矢印をタップしてハチをお花へ導く無料のプログラミング体験ゲーム。前進と左右の回転で命令の順番を学べます。年齢別2モード・全8課題。登録不要で、HTMLを保存してオフラインでも遊べます。';
 

@@ -10,7 +10,7 @@ const publication = require('../scripts/build-publication.cjs');
 const repositoryRoot = path.join(__dirname, '..');
 const sourcePath = path.join(repositoryRoot, 'index.html');
 const scriptPath = path.join(repositoryRoot, 'scripts', 'build-publication.cjs');
-const publicUrl = 'https://atsuhi.ro/apps/baby-programming/';
+const publicUrl = 'https://atsuhi.ro/apps/baby-programming/bee-and-flower/';
 
 function decodeEntities(value) {
   return value.replace(/&(#x[\da-f]+|#\d+|amp|quot|apos|lt|gt);/gi, (_, entity) => {
@@ -168,7 +168,7 @@ test('publication metadata introduces no external runtime assets or network depe
 
 test('the build function creates the published HTML and copies both image assets unchanged', t => {
   const directory = temporaryDirectory(t);
-  const outputDirectory = path.join(directory, 'apps', 'baby-programming');
+  const outputDirectory = path.join(directory, 'apps', 'baby-programming', 'bee-and-flower');
   const original = fs.readFileSync(sourcePath);
   const result = publication.buildPublication(outputDirectory);
   assert.equal(result, path.join(outputDirectory, 'index.html'));

@@ -4,7 +4,7 @@
 
 ゲーム本体は **`index.html` 1ファイル**です。HTML・CSS・JavaScriptとイラスト用のインラインSVGを含み、外部ライブラリ、画像のダウンロード、サーバー、ログインは必要ありません。個人情報の取得やプレイ記録の保存は行いません。
 
-Web公開先：**https://atsuhi.ro/apps/baby-programming/**。`main`の更新後、テストに成功するとGitHub Actionsから個人サイトへ自動反映します。[公開・同期の仕組みと確認方法](docs/publishing.md)を参照してください。
+Web公開先：**https://atsuhi.ro/apps/baby-programming/bee-and-flower/**。`main`の更新後、テストに成功するとGitHub Actionsが公開する版を個人サイトへ通知し、サイトの公開処理でHTML・画像を生成します。[公開の仕組みと確認方法](docs/publishing.md)を参照してください。
 
 ## 起動方法（Windows 8）
 

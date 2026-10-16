@@ -34,9 +34,6 @@ jobs:
         with:
           path: source
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
       - name: Check out the publication repository using its deploy key
         uses: actions/checkout@v4
         with:
@@ -44,9 +41,19 @@ jobs:
           ref: master
           path: site
           ssh-key: ${{ secrets.PERSONAL_PAGE_DEPLOY_KEY }}
-      - name: Build the page with its canonical URL
-        run: node source/scripts/build-publication.cjs site/apps/baby-programming
-      - name: Publish the app without changing other site files
+      - name: Record the tested game revision for the site deployment
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          release_file=site/apps/baby-programming/bee-and-flower.json
+          if [ ! -f "$release_file" ]; then
+            echo 'Merge the personal-page deployment integration first, then rerun this workflow.' >&2
+            exit 1
+          fi
+          printf '{\n  "revision": "%s"\n}\n' "$SOURCE_SHA" > "$release_file"
+      - name: Publish the revision without copying game files into the site repository
         shell: bash
         env:
           SOURCE_SHA: ${{ github.sha }}
@@ -55,12 +62,12 @@ jobs:
           cd site
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- apps/baby-programming/index.html apps/baby-programming/favicon.ico apps/baby-programming/image.png
+          git add -- apps/baby-programming/bee-and-flower.json
           if git diff --cached --quiet; then
-            echo 'The published page is already up to date.'
+            echo 'The published revision is already up to date.'
             exit 0
           fi
-          git commit -m "Publish baby-programming from ${SOURCE_SHA}"
+          git commit -m "Publish bee-and-flower from ${SOURCE_SHA}"
           for attempt in 1 2 3; do
             git -C ../source fetch --no-tags origin main
             if [ "$(git -C ../source rev-parse FETCH_HEAD)" != "$SOURCE_SHA" ]; then
