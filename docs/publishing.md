@@ -6,8 +6,8 @@
 
 1. このリポジトリの `main` に変更がマージされると、GitHub Actionsの **Publish to personal site** が起動します。
 2. オフラインゲームと公開HTMLの自動テストが成功した場合だけ、公開ジョブへ進みます。
-3. `scripts/build-publication.cjs` がゲーム本体を読み、正式URL・タイトル・説明文・OGメタデータを付けたHTMLを生成します。
-4. 登録済みSSH Deploy Keyで `a2h1r0/personal-page` の `master` に接続し、`apps/baby-programming/index.html` だけをコミット・pushします。
+3. `scripts/build-publication.cjs` がゲーム本体を読み、正式URL・タイトル・説明文・favicon・OGP・X向けカード設定を付けたHTMLを生成し、`favicon.ico` と `image.png` を出力先へコピーします。
+4. 登録済みSSH Deploy Keyで `a2h1r0/personal-page` の `master` に接続し、`apps/baby-programming/` 内の `index.html`・`favicon.ico`・`image.png` をコミット・pushします。
 5. 個人サイトの既存GitHub Pagesが更新を公開します。
 
 実行・コピー・コミット・公開はすべてGitHub上で行います。開発PCの電源や、鍵を最初に生成したPCのローカルファイルには依存しません。
@@ -16,6 +16,7 @@
 
 - ゲームの編集元は、このリポジトリの `index.html` です。
 - 配布用 `index.html` は従来どおり単独で利用できます。公開メタデータは生成時に追加し、ゲームの本文・スクリプト・見た目は変更しません。
+- faviconはルートの `favicon.ico`、OGP画像はルートの `image.png` を編集します。OGP画像のサイズを変える場合は、生成処理の `og:image:width`・`og:image:height` も更新してください。
 - 個人サイト側の生成済みHTMLは、次の同期で更新されるため直接編集しません。
 - 生成結果が同じ場合は、不要なコミットを作りません。
 - 古い実行の再実行で巻き戻らないよう、push前に現在の `main` を確認します。公開ジョブは直列に実行します。
@@ -51,4 +52,4 @@ node --test
 node scripts/build-publication.cjs <確認用の出力フォルダー>
 ```
 
-出力フォルダー内の `index.html` が公開版です。ソースの `index.html` を上書きする指定は受け付けません。
+出力フォルダー内の `index.html`・`favicon.ico`・`image.png` が公開用ファイルです。ソースの `index.html` を上書きする指定は受け付けません。

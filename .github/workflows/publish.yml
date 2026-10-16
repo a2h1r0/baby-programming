@@ -55,7 +55,7 @@ jobs:
           cd site
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- apps/baby-programming/index.html
+          git add -- apps/baby-programming/index.html apps/baby-programming/favicon.ico apps/baby-programming/image.png
           if git diff --cached --quiet; then
             echo 'The published page is already up to date.'
             exit 0
