@@ -167,13 +167,15 @@ test('success depends on the final position, including overshooting the goal', (
   assert.equal(game.outcome(run(farthest, ['F', 'F', 'F', 'F', 'F']), farthest), 'outside');
 });
 
-test('the deliverable is a single HTML file with no external assets or network/storage APIs', () => {
-  const allowedSvgNamespaceRemoved = html.replace(/https?:\/\/www\.w3\.org\/2000\/svg/g, 'SVG_NAMESPACE');
+test('the game needs only its HTML file; sharing metadata and the favicon are optional for offline play', () => {
+  const runtimeHtml = html.replace(/<meta\b[^>]*>/gi, '')
+    .replace(/<link\b[^>]*\brel\s*=\s*["'](?:canonical|icon)["'][^>]*>/gi, '');
+  const allowedSvgNamespaceRemoved = runtimeHtml.replace(/https?:\/\/www\.w3\.org\/2000\/svg/g, 'SVG_NAMESPACE');
   assert.doesNotMatch(allowedSvgNamespaceRemoved, /https?:\/\//i, 'external URLs require an offline dependency review');
   assert.doesNotMatch(html, /\b(?:src|srcset)\s*=/i, 'all visuals and scripts must be inline');
   assert.doesNotMatch(html, /<link\b[^>]*rel\s*=\s*["']?stylesheet/i);
   assert.doesNotMatch(html, /@import\b/i);
-  for (const reference of html.matchAll(/\bhref\s*=\s*["']([^"']*)["']/gi)) {
+  for (const reference of runtimeHtml.matchAll(/\bhref\s*=\s*["']([^"']*)["']/gi)) {
     assert.match(reference[1], /^#/, 'links may reference only content in this HTML file');
   }
   for (const reference of html.matchAll(/\burl\s*\(\s*([^)]+)\)/gi)) {

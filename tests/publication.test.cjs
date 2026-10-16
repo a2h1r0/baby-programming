@@ -1,15 +1,11 @@
-/* Publication checks use Node.js built-ins only; the game keeps working offline. */
+/* Check sharing metadata directly in the page, with no build step. */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
 const test = require('node:test');
-const publication = require('../scripts/build-publication.cjs');
 
 const repositoryRoot = path.join(__dirname, '..');
 const sourcePath = path.join(repositoryRoot, 'index.html');
-const scriptPath = path.join(repositoryRoot, 'scripts', 'build-publication.cjs');
 const publicUrl = 'https://atsuhi.ro/apps/baby-programming/';
 
 function decodeEntities(value) {
@@ -39,42 +35,23 @@ function metadata(html, key) {
     .filter(tag => tag.name === key || tag.property === key);
 }
 
-function body(html) {
-  const match = html.match(/<body\b[^>]*>[\s\S]*<\/body\s*>/i);
-  assert.ok(match, 'the published game must retain its body');
-  return match[0];
-}
-
-function scripts(html) {
-  return html.match(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi) || [];
-}
-
-function temporaryDirectory(t) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bee-publication-'));
-  t.after(() => {
-    assert.equal(path.dirname(path.resolve(directory)), path.resolve(os.tmpdir()));
-    assert.ok(path.basename(directory).startsWith('bee-publication-'));
-    fs.rmSync(directory, { recursive: true, force: true });
-  });
-  return directory;
-}
-
 test('published HTML identifies one canonical public URL and complete Japanese sharing metadata', () => {
-  const rendered = publication.renderPublication(fs.readFileSync(sourcePath, 'utf8'));
-  assert.equal(publication.PUBLIC_URL, publicUrl);
-  assert.ok(publication.TITLE.length > 0);
-  assert.ok(publication.DESCRIPTION.length > 0);
+  const rendered = fs.readFileSync(sourcePath, 'utf8');
   const titles = rendered.match(/<title\b[^>]*>[\s\S]*?<\/title\s*>/gi) || [];
   assert.equal(titles.length, 1);
-  assert.equal(decodeEntities(titles[0].replace(/^<title\b[^>]*>|<\/title\s*>$/gi, '')), publication.TITLE);
+  const title = decodeEntities(titles[0].replace(/^<title\b[^>]*>|<\/title\s*>$/gi, ''));
+  assert.ok(title.length > 0);
+  const description = metadata(rendered, 'description');
+  assert.equal(description.length, 1);
+  assert.ok(description[0].content.length > 0);
   const canonical = tags(rendered, 'link').map(attributes).filter(tag => tag.rel === 'canonical');
   assert.equal(canonical.length, 1);
   assert.equal(canonical[0].href, publicUrl);
   const expected = {
-    description: publication.DESCRIPTION,
+    description: description[0].content,
     'og:url': publicUrl,
-    'og:title': publication.TITLE,
-    'og:description': publication.DESCRIPTION,
+    'og:title': title,
+    'og:description': description[0].content,
     'og:type': 'website',
     'og:locale': 'ja_JP',
     'og:image': publicUrl + 'image.png',
@@ -103,122 +80,5 @@ test('published HTML identifies one canonical public URL and complete Japanese s
   for (const tag of tags(rendered, 'meta')) {
     assert.doesNotMatch(tag, /&(?!#\d+;|#x[\da-f]+;|amp;|quot;|apos;|lt;|gt;)/i,
       'metadata must escape HTML entities');
-  }
-});
-
-test('publication replaces the source title while preserving body and script bytes', () => {
-  const fixture = '<!DOCTYPE html>\r\n<html lang="ja">\r\n<head>\r\n' +
-    '<title>Old &amp; &quot;title&quot;</title>\r\n</head>\r\n' +
-    '<body data-example="&quot;&amp;">\r\n<p>はち &amp; おはな</p>\r\n' +
-    '<script>var example = "a < b & c";\r\n// Keep spaces and CRLF.\r\n</script>\r\n' +
-    '</body>\r\n</html>\r\n';
-  const rendered = publication.renderPublication(fixture);
-  assert.doesNotMatch(rendered, /Old &amp; &quot;title&quot;/);
-  assert.equal(body(rendered), body(fixture));
-  assert.deepEqual(scripts(rendered), scripts(fixture));
-});
-
-test('rebuilding publication replaces inherited search metadata and is idempotent', () => {
-  const fixture = '<!DOCTYPE html><html lang="ja"><head><title>Old title</title>' +
-    '<link rel="canonical" href="https://old.example/">' +
-    '<link rel="shortcut icon" href="https://old.example/favicon.ico">' +
-    '<meta name="description" content="Obsolete description">' +
-    '<meta name="robots" content="noindex">' +
-    '<meta property="og:title" content="Obsolete sharing title">' +
-    '<meta property="og:url" content="https://old.example/">' +
-    '<meta property="og:image" content="https://old.example/image.png">' +
-    '<meta name="twitter:card" content="summary">' +
-    '<meta name="twitter:image" content="https://old.example/image.png">' +
-    '</head><body><p>Keep this game.</p></body></html>';
-  const rendered = publication.renderPublication(fixture);
-  assert.doesNotMatch(rendered, /old\.example|Obsolete|noindex/);
-  assert.equal(tags(rendered, 'link').map(attributes).filter(tag => tag.rel === 'canonical').length, 1);
-  for (const key of ['description', 'robots', 'og:title', 'og:url', 'og:image', 'twitter:card', 'twitter:image']) {
-    assert.equal(metadata(rendered, key).length, 1, key + ' must not be duplicated');
-  }
-  assert.equal(publication.renderPublication(rendered), rendered);
-  assert.equal(body(rendered), body(fixture));
-});
-
-test('the real published game keeps every game script and body byte without changing its offline source', () => {
-  const original = fs.readFileSync(sourcePath);
-  const source = original.toString('utf8');
-  const rendered = publication.renderPublication(source);
-  assert.equal(body(rendered), body(source));
-  assert.deepEqual(scripts(rendered), scripts(source));
-  assert.deepEqual(fs.readFileSync(sourcePath), original);
-});
-
-test('publication metadata introduces no external runtime assets or network dependency', () => {
-  const rendered = publication.renderPublication(fs.readFileSync(sourcePath, 'utf8'));
-  for (const name of ['script', 'img', 'iframe', 'audio', 'video', 'source', 'embed', 'object']) {
-    for (const tag of tags(rendered, name)) {
-      const values = attributes(tag);
-      for (const key of ['src', 'srcset', 'data', 'poster']) {
-        assert.doesNotMatch(values[key] || '', /(?:https?:)?\/\//i, name + ' must not fetch a remote asset');
-      }
-    }
-  }
-  for (const tag of tags(rendered, 'link').map(attributes)) {
-    if (tag.rel !== 'canonical') assert.doesNotMatch(tag.href || '', /(?:https?:)?\/\//i);
-  }
-  assert.doesNotMatch(rendered, /@import\s|url\(\s*["']?(?:https?:)?\/\//i);
-  assert.doesNotMatch(scripts(rendered).join('\n'), /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource)\b/);
-});
-
-test('the build function creates the published HTML and copies both image assets unchanged', t => {
-  const directory = temporaryDirectory(t);
-  const outputDirectory = path.join(directory, 'apps', 'baby-programming');
-  const original = fs.readFileSync(sourcePath);
-  const result = publication.buildPublication(outputDirectory);
-  assert.equal(result, path.join(outputDirectory, 'index.html'));
-  assert.deepEqual(fs.readdirSync(outputDirectory).sort(), ['favicon.ico', 'image.png', 'index.html']);
-  for (const asset of ['favicon.ico', 'image.png']) {
-    assert.deepEqual(fs.readFileSync(path.join(outputDirectory, asset)),
-      fs.readFileSync(path.join(repositoryRoot, asset)));
-  }
-  assert.equal(fs.readFileSync(result, 'utf8'), publication.renderPublication(original.toString('utf8')));
-  assert.deepEqual(fs.readFileSync(sourcePath), original);
-});
-
-test('the command line builds from an unrelated working directory and leaves the source untouched', t => {
-  const directory = temporaryDirectory(t);
-  const outputDirectory = path.join(directory, 'published');
-  const original = fs.readFileSync(sourcePath);
-  const result = spawnSync(process.execPath, [scriptPath, outputDirectory], {
-    cwd: directory,
-    encoding: 'utf8'
-  });
-  assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.deepEqual(fs.readdirSync(directory), ['published']);
-  assert.deepEqual(fs.readdirSync(outputDirectory).sort(), ['favicon.ico', 'image.png', 'index.html']);
-  assert.equal(fs.readFileSync(path.join(outputDirectory, 'index.html'), 'utf8'),
-    publication.renderPublication(original.toString('utf8')));
-  assert.deepEqual(fs.readFileSync(sourcePath), original);
-});
-
-test('a missing command line destination fails without writing files', t => {
-  const directory = temporaryDirectory(t);
-  const original = fs.readFileSync(sourcePath);
-  const result = spawnSync(process.execPath, [scriptPath], { cwd: directory, encoding: 'utf8' });
-  assert.notEqual(result.status, 0);
-  assert.ok((result.stderr + result.stdout).trim().length > 0, 'failure must explain the missing argument');
-  assert.deepEqual(fs.readdirSync(directory), []);
-  assert.deepEqual(fs.readFileSync(sourcePath), original);
-});
-
-test('the build function refuses to overwrite the offline source in the repository root', () => {
-  const original = fs.readFileSync(sourcePath);
-  assert.throws(() => publication.buildPublication(repositoryRoot));
-  assert.deepEqual(fs.readFileSync(sourcePath), original);
-});
-
-test('malformed publication input fails rather than publishing an HTML document without metadata', () => {
-  for (const fixture of [
-    '<!DOCTYPE html><html><head></head><body>Missing title</body></html>',
-    '<!DOCTYPE html><html><title>Missing head</title><body>Game</body></html>',
-    '<!DOCTYPE html><html><head><title>Unclosed head</title><body>Game</body></html>'
-  ]) {
-    assert.throws(() => publication.renderPublication(fixture));
   }
 });

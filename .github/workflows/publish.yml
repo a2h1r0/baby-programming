@@ -34,9 +34,6 @@ jobs:
         with:
           path: source
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
       - name: Check out the publication repository using its deploy key
         uses: actions/checkout@v4
         with:
@@ -44,8 +41,10 @@ jobs:
           ref: master
           path: site
           ssh-key: ${{ secrets.PERSONAL_PAGE_DEPLOY_KEY }}
-      - name: Build the page with its canonical URL
-        run: node source/scripts/build-publication.cjs site/apps/baby-programming
+      - name: Copy the page and sharing assets
+        run: |
+          mkdir -p site/apps/baby-programming
+          cp source/index.html source/favicon.ico source/image.png site/apps/baby-programming/
       - name: Publish the app without changing other site files
         shell: bash
         env:
