@@ -5,7 +5,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC_URL = 'https://atsuhi.ro/apps/baby-programming/';
 const TITLE = '4〜6歳向け無料プログラミングゲーム｜はちさんと おはな';
-const DESCRIPTION = '4〜6歳の幼児が、矢印をタップしてハチをお花へ導く無料のプログラミング体験ゲーム。前進と左右の回転で命令の順番を学べます。年齢別2モード・全8課題。登録不要で、HTMLを保存してオフラインでも遊べます。';
+const DESCRIPTION = '4〜6歳の幼児が、矢印をタップしてハチをお花へ導く無料のプログラミング体験ゲーム。前進から回転、岩の回り道へ、5レベルごとに少しずつ練習できます。レベル数とプレイ回数に上限はありません。登録不要で、HTMLを保存してオフラインでも遊べます。';
 
 function escapeHtml(value) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
