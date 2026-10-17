@@ -24,15 +24,14 @@ node --test
 
 古い実行の再実行では新しい `main` が存在する場合に通知をスキップします。個人サイトでも公開直前に両リポジトリの更新を確認し、古い版への巻き戻しを防ぎます。テストやコピーに失敗した場合は、現在公開中のサイトを維持します。
 
-### 初期設定
+### 公開に必要な設定
 
 1. 自分専用のGitHub Appを作成し、Repository permissionsの **Actions: Read and write** を付けます。Webhookは不要です。
 2. Appを **`a2h1r0/personal-page`だけ**にインストールします。
 3. このリポジトリの **Settings → Secrets and variables → Actions** に、Variable `SITE_DEPLOY_APP_CLIENT_ID`（AppのClient ID）とSecret `SITE_DEPLOY_APP_PRIVATE_KEY`（生成した秘密鍵のPEM全文）を登録します。
-4. 先に個人サイト側の取り込み・`game_revision`入力対応をマージし、次にこの通知処理をマージします。
 
-トークンは実行時に自動発行します。以前の `PERSONAL_PAGE_DEPLOY_KEY` はこの処理では使用しません。初期設定後は、通常の `main` へのpushだけで個人サイトまで自動更新されます。
+トークンは実行時に自動発行します。通常の `main` へのpushだけで個人サイトまで自動更新されます。
 
-設定後の接続確認では、Actionsの **Publish to personal site → Run workflow** で **Verify the GitHub App connection without deploying**（`verify_only`）をオンにします。ゲームのテストとAppの認証・権限・公開ワークフローへの接続だけを確認し、公開処理は起動しません。
+接続を確認する場合は、Actionsの **Publish to personal site → Run workflow** で **Verify the GitHub App connection without deploying**（`verify_only`）をオンにします。ゲームのテストとAppの認証・権限・公開ワークフローへの接続だけを確認し、公開処理は起動しません。
 
 公開先が更新されない場合は、このリポジトリの **Publish to personal site** と、個人サイトの **Deploy to GitHub Pages** の実行結果を確認してください。
