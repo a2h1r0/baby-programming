@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>4〜6歳向け無料プログラミングゲーム｜はちさんと おはな</title>
+<title>はちさんと おはな</title>
 <style>
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; height: 100%; }
@@ -23,6 +23,9 @@ svg { display: block; }
 .intro h1:focus { outline: none; }
 .intro-bee { width: 64px; height: 64px; flex: 0 0 64px; margin-left: 16px; }
 .intro-lead { margin: 0 0 16px; font-size: 15px; line-height: 1.6; }
+.intro-learning { margin-bottom: 16px; }
+.intro-learning h2 { margin: 0 0 4px; font-size: 17px; }
+.intro-learning p { margin: 0; font-size: 14px; line-height: 1.65; }
 .intro-steps { margin: 0; padding-left: 25px; }
 .intro-steps li { padding-left: 5px; margin-bottom: 12px; }
 .intro-steps li::marker { color: #6a8a59; font-weight: bold; }
@@ -96,11 +99,11 @@ svg { display: block; }
 </style>
 <link rel="canonical" href="https://atsuhi.ro/apps/baby-programming/bee-and-flower/">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<meta name="description" content="4〜6歳の幼児が、矢印をタップしてハチをお花へ導く無料のプログラミング体験ゲーム。前進から回転、岩の回り道へ、5レベルごとに少しずつ練習できます。レベル数とプレイ回数に上限はありません。登録不要で、HTMLを保存してオフラインでも遊べます。">
+<meta name="description" content="矢印をタップしてハチをお花へ導く、幼児向けの無料プログラミング体験ゲーム。動きを分解し、順番を考えて試すことで、プログラミング的思考力を育みます。登録不要で、HTMLを保存してオフラインでも遊べます。">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
-<meta property="og:title" content="4〜6歳向け無料プログラミングゲーム｜はちさんと おはな">
-<meta property="og:description" content="4〜6歳の幼児が、矢印をタップしてハチをお花へ導く無料のプログラミング体験ゲーム。前進から回転、岩の回り道へ、5レベルごとに少しずつ練習できます。レベル数とプレイ回数に上限はありません。登録不要で、HTMLを保存してオフラインでも遊べます。">
+<meta property="og:title" content="はちさんと おはな">
+<meta property="og:description" content="矢印をタップしてハチをお花へ導く、幼児向けの無料プログラミング体験ゲーム。動きを分解し、順番を考えて試すことで、プログラミング的思考力を育みます。登録不要で、HTMLを保存してオフラインでも遊べます。">
 <meta property="og:url" content="https://atsuhi.ro/apps/baby-programming/bee-and-flower/">
 <meta property="og:image" content="https://atsuhi.ro/apps/baby-programming/bee-and-flower/image.png">
 <meta property="og:image:type" content="image/png">
@@ -119,7 +122,11 @@ svg { display: block; }
       <h1 id="intro-title" tabindex="-1">遊び方</h1>
       <div id="intro-bee" class="intro-bee" aria-hidden="true"></div>
     </div>
-    <p id="intro-lead" class="intro-lead">矢印を順番に並べて、ハチを花まで動かす遊びです。</p>
+    <p id="intro-lead" class="intro-lead">ハチを花まで動かす、幼児向けのプログラミング体験ゲームです。</p>
+    <div class="intro-learning">
+      <h2>プログラミング的思考力を育む</h2>
+      <p>目的に必要な動きを小さなアクションに分解し、どの順番で進めるかを考えることが、プログラミング的思考力の大切な要素です。花までの動きを前進や回転に分けて矢印を並べ、試して直す体験を通して、この力を育みます。</p>
+    </div>
     <ol class="intro-steps">
       <li><strong>矢印を並べる</strong><p>前進はハチの顔の向きへ1マス。左右の矢印は、その場で90度向きを変えます。</p></li>
       <li><strong>GOで実行する</strong><p>最後の矢印が終わった場所が、花のマスなら成功です。</p></li>
