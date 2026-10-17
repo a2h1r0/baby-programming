@@ -179,7 +179,7 @@ svg { display: block; }
   <noscript>このあそびには JavaScript を有効にしたブラウザが必要です。</noscript>
 </div>
 <script id="game-core">
-/* Pure game rules: direction 0=up, 1=right, 2=down, 3=left. */
+/* Game rules: direction 0=up, 1=right, 2=down, 3=left. */
 var BeeGame = (function () {
   "use strict";
   var dx = [0, 1, 0, -1], dy = [-1, 0, 1, 0];
@@ -209,11 +209,11 @@ var BeeGame = (function () {
     for (i = 0; i < 4; i += 1) { if (from.x + dx[i] === to.x && from.y + dy[i] === to.y) { return i; } }
     throw new Error("Path cells must be adjacent");
   }
-  function createLevel(number) {
+  function createLevel(number, randomSource) {
     if (typeof number !== "number" || !isFinite(number) || number < 1 || Math.floor(number) !== number) { throw new Error("A positive whole level number is required"); }
     var stage = Math.floor((number - 1) / 5) + 1, within = (number - 1) % 5;
-    var seed = ((number % 2147483646) * 48271) % 2147483646 + 1;
-    function random(limit) { seed = (seed * 16807) % 2147483647; return Math.floor((seed / 2147483647) * limit); }
+    randomSource = randomSource || Math.random;
+    function random(limit) { return Math.floor(randomSource() * limit); }
     var path = [], obstacles = [], i, x, y, template, rotation, mirror, candidates = [], extra;
     function transform(cell) {
       var a = mirror ? 4 - cell.x : cell.x, b = cell.y, j, previous;
@@ -222,12 +222,12 @@ var BeeGame = (function () {
     }
     if (stage === 1) {
       var distance = [1, 2, 2, 3, 4][within];
-      for (i = 0; i <= distance; i += 1) { path.push({ x: i, y: [2, 1, 3, 2, 2][within] }); }
+      for (i = 0; i <= distance; i += 1) { path.push({ x: i, y: 0 }); }
     } else {
       var bank = templates[Math.min(stage, 6) - 1];
       template = bank[stage === 2 ? within : random(bank.length)];
       path = points(template.path); obstacles = points(template.rocks);
-      /* A seeded shuffle gives every level a stable board for retries. */
+      /* Extra rocks vary the board without blocking the teaching route. */
       if (stage >= 3) {
         for (y = 0; y < 5; y += 1) {
           for (x = 0; x < 5; x += 1) {
@@ -237,10 +237,18 @@ var BeeGame = (function () {
         extra = Math.min(3, Math.floor((stage - 3) / 2)) + (within >= 3 ? 1 : 0);
         for (i = 0; i < extra && candidates.length; i += 1) { obstacles.push(candidates.splice(random(candidates.length), 1)[0]); }
       }
-      rotation = random(4); mirror = random(2);
-      for (i = 0; i < path.length; i += 1) { path[i] = transform(path[i]); }
-      for (i = 0; i < obstacles.length; i += 1) { obstacles[i] = transform(obstacles[i]); }
     }
+    /* Vary orientation and position at every level, including forward-only play. */
+    rotation = random(4); mirror = random(2);
+    for (i = 0; i < path.length; i += 1) { path[i] = transform(path[i]); }
+    for (i = 0; i < obstacles.length; i += 1) { obstacles[i] = transform(obstacles[i]); }
+    var cells = path.concat(obstacles), minX = 4, maxX = 0, minY = 4, maxY = 0;
+    for (i = 0; i < cells.length; i += 1) {
+      minX = Math.min(minX, cells[i].x); maxX = Math.max(maxX, cells[i].x);
+      minY = Math.min(minY, cells[i].y); maxY = Math.max(maxY, cells[i].y);
+    }
+    var offsetX = random(5 - maxX + minX) - minX, offsetY = random(5 - maxY + minY) - minY;
+    for (i = 0; i < cells.length; i += 1) { cells[i].x += offsetX; cells[i].y += offsetY; }
     var initial = direction(path[0], path[1]), facing = initial, solution = [], desired, turn;
     for (i = 1; i < path.length; i += 1) {
       desired = direction(path[i - 1], path[i]); turn = (desired - facing + 4) % 4;
@@ -346,7 +354,8 @@ var BeeGame = (function () {
     byId("result-title").textContent = "できたね！";
     byId("result-icon").innerHTML = beeArt;
     byId("next").hidden = false; byId("retry").hidden = true;
-    currentLevel = BeeGame.createLevel(levelNumber);
+    /* Keep the drawn course while editing or retrying; generate only on entry. */
+    if (!currentLevel || currentLevel.number !== levelNumber) { currentLevel = BeeGame.createLevel(levelNumber); }
     var current = course(), x, y, i, routeCell, cell, html = "";
     for (y = 0; y < current.rows; y += 1) {
       for (x = 0; x < current.columns; x += 1) {

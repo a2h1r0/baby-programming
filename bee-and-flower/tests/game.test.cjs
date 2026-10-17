@@ -15,6 +15,14 @@ assert.ok(game, 'game-core must define BeeGame');
 
 function plain(value) { return JSON.parse(JSON.stringify(value)); }
 function sameCell(left, right) { return left.x === right.x && left.y === right.y; }
+function seededRandom(seed) {
+  let state = seed % 2147483646 + 1;
+  return () => {
+    state = state * 16807 % 2147483647;
+    return state / 2147483647;
+  };
+}
+function mathWithRandom(random) { return Object.assign(Object.create(Math), { random }); }
 function run(level, commands) {
   let position = game.start(level);
   for (const command of commands) {
@@ -51,12 +59,14 @@ function shortestSolution(level) {
   return null;
 }
 
-test('hundreds of deterministic courses and distant levels remain valid and independently solvable', () => {
+test('thousands of randomized courses and distant levels remain valid and independently solvable', () => {
   assert.equal(game.maxCommands, 12);
   const numbers = Array.from({ length: 500 }, (_, index) => index + 1).concat([1000, 10001, 1000000]);
-  for (const number of numbers) {
-    const level = game.createLevel(number);
-    assert.deepEqual(plain(game.createLevel(number)), plain(level), 'determinism at level ' + number);
+  const sources = [1, 12345, 987654321, 2147483645].map(seed => () => seededRandom(seed))
+    .concat([() => () => 0, () => () => 1 - Number.EPSILON]);
+  for (const { number, source } of numbers.flatMap(number => sources.map(source => ({ number, source })))) {
+    const level = game.createLevel(number, source());
+    assert.deepEqual(plain(game.createLevel(number, source())), plain(level), 'injected randomness must be reproducible');
     assert.equal(level.number, number);
     assert.equal(level.stage, Math.floor((number - 1) / 5) + 1);
     assert.equal(level.columns, 5);
@@ -67,6 +77,13 @@ test('hundreds of deterministic courses and distant levels remain valid and inde
     assert.ok(Array.isArray(level.obstacles));
     assert.ok(level.solution.length > 0 && level.solution.length <= game.maxCommands);
     assert.ok(level.solution.every(command => ['F', 'L', 'R'].includes(command)));
+    if (number <= 5) {
+      assert.equal(level.solution.length, [1, 2, 2, 3, 4][number - 1]);
+      assert.ok(level.solution.every(command => command === 'F'));
+    } else {
+      assert.ok(level.solution.some(command => command !== 'F'));
+    }
+    assert.equal(level.obstacles.length > 0, number >= 11);
     assert.ok(sameCell(level.path[0], level.start));
     assert.ok(sameCell(level.path[level.path.length - 1], level.goal));
     assert.ok(!sameCell(level.start, level.goal));
@@ -101,6 +118,23 @@ test('hundreds of deterministic courses and distant levels remain valid and inde
   }
 });
 
+test('every level varies its placement, and normal generation uses fresh randomness', () => {
+  for (const number of Array.from({ length: 35 }, (_, index) => index + 1).concat([1000, 1000000])) {
+    const placements = new Set(), rockPlacements = new Set();
+    for (let sample = 1; sample <= 48; sample += 1) {
+      const level = game.createLevel(number, seededRandom(sample * 104729));
+      placements.add(JSON.stringify([level.start, level.goal]));
+      rockPlacements.add(JSON.stringify(level.obstacles.map(rock => rock.x + ',' + rock.y).sort()));
+    }
+    assert.ok(placements.size > 1, 'start and goal must vary at level ' + number);
+    if (number >= 11) assert.ok(rockPlacements.size > 1, 'rocks must vary at level ' + number);
+  }
+  const context = vm.createContext({ Math: mathWithRandom(seededRandom(12345)) });
+  vm.runInContext(coreMatch[1], context, { timeout: 1000 });
+  const placements = new Set(Array.from({ length: 24 }, () => JSON.stringify(context.BeeGame.createLevel(1))));
+  assert.ok(placements.size > 1, 'calling without a random source must also generate fresh courses');
+});
+
 test('five-level stages introduce forward movement, turns, then obstacles', () => {
   for (let number = 1; number <= 15; number += 1) {
     const level = game.createLevel(number);
@@ -120,12 +154,12 @@ test('five-level stages introduce forward movement, turns, then obstacles', () =
   assert.equal(game.createLevel(30).partialPath, true);
   assert.equal(game.createLevel(31).showPath, false);
   assert.equal(game.createLevel(31).partialPath, false);
-  const level = game.createLevel(31);
+  const level = game.createLevel(31, seededRandom(12345));
   const snapshot = plain(level);
   level.path[0].x = -10;
   level.solution.length = 0;
   level.obstacles.length = 0;
-  assert.deepEqual(plain(game.createLevel(31)), snapshot, 'courses must not share mutable arrays');
+  assert.deepEqual(plain(game.createLevel(31, seededRandom(12345))), snapshot, 'courses must not share mutable arrays');
 });
 
 test('forward moves in each orientation; turns rotate in place and wrap', () => {
@@ -216,7 +250,7 @@ test('inline scripts retain conservative ES5 syntax for older classroom browsers
 });
 
 /* Minimal DOM and controlled timers exercise the shipped UI, without duplicating its state. */
-function makeApp({ startGame = true } = {}) {
+function makeApp({ startGame = true, random = seededRandom(12345) } = {}) {
   const elements = new Map();
   let focused = null;
   class Element {
@@ -285,11 +319,22 @@ function makeApp({ startGame = true } = {}) {
     },
     clearTimeout(id) { timers = timers.filter(timer => timer.id !== id); }
   };
-  const context = vm.createContext({ document, window });
+  const context = vm.createContext({ document, window, Math: mathWithRandom(random) });
+  let generatedLevel, generationCount = 0;
   for (const script of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) {
     vm.runInContext(script[1], context, { timeout: 1000 });
+    if (script[0].includes('id="game-core"')) {
+      const createLevel = context.BeeGame.createLevel;
+      context.BeeGame.createLevel = (...args) => {
+        generatedLevel = createLevel(...args);
+        generationCount += 1;
+        return generatedLevel;
+      };
+    }
   }
   const app = {
+    course() { return plain(generatedLevel); },
+    generationCount() { return generationCount; },
     element(id) { return document.getElementById(id); },
     click(id, target) { document.getElementById(id).click(target); },
     commandButtons() { return document.getElementById('program').children.flatMap(item => item.children); },
@@ -348,7 +393,8 @@ function assertFailureDialog(app, reason) {
   assert.equal(app.pendingTimers(), 0);
 }
 function winLevel(app, number) {
-  app.add(game.createLevel(number).solution);
+  assert.equal(app.course().number, number);
+  app.add(shortestSolution(app.course()));
   app.click('go'); app.finish();
   assertSuccessDialog(app);
   assert.equal(app.pendingTimers(), 0);
@@ -385,6 +431,7 @@ test('UI explains the game to parents on every visit and requires starting befor
 
 test('UI starts at level 1, hides turns, edits commands, and enforces 12-command capacity', () => {
   const app = makeApp();
+  const course = app.course();
   assert.equal(app.element('game').hidden, false);
   assert.equal(levelNumber(app), 1);
   assert.doesNotMatch(html, /\bid\s*=\s*["']back["']/i, 'the game must not show a back button');
@@ -411,6 +458,21 @@ test('UI starts at level 1, hides turns, edits commands, and enforces 12-command
   assert.equal(app.commandButtons().length, 0);
   assert.equal(app.element('go').disabled, true);
   assert.equal(levelNumber(app), 1);
+  assert.deepEqual(app.course(), course, 'editing and restart must preserve the course');
+  assert.equal(app.generationCount(), 1, 'editing and restart must not generate a new course');
+});
+
+test('fresh visits draw different maps while each visit keeps its course', () => {
+  const courses = new Set();
+  for (let seed = 1; seed <= 24; seed += 1) {
+    const app = makeApp({ random: seededRandom(seed * 104729) });
+    const course = app.course();
+    courses.add(JSON.stringify([course.start, course.goal]));
+    app.add(['F']); app.click('undo'); app.click('restart');
+    assert.deepEqual(app.course(), course);
+    assert.equal(app.generationCount(), 1);
+  }
+  assert.ok(courses.size > 1, 'fresh visits must not be tied to the level number');
 });
 
 test('UI progresses beyond every five-level boundary to level 31 without wrapping', () => {
@@ -419,14 +481,15 @@ test('UI progresses beyond every five-level boundary to level 31 without wrappin
     assert.equal(levelNumber(app), number);
     assert.equal(app.element('left').hidden, number <= 5);
     assert.equal(app.element('right').hidden, number <= 5);
-    app.add(game.createLevel(number).solution);
+    const level = app.course();
+    app.add(shortestSolution(level));
     app.click('go');
     for (const id of ['forward', 'left', 'right', 'go', 'undo', 'restart']) assert.equal(app.element(id).disabled, true);
     const count = app.commandButtons().length;
     app.click('undo'); app.click('forward'); app.click('restart');
     assert.equal(app.commandButtons().length, count);
     app.finish();
-    const goal = game.createLevel(number).goal;
+    const goal = level.goal;
     assert.equal(app.element('bee').style.left, (goal.x * 20) + '%');
     assert.equal(app.element('bee').style.top, (goal.y * 20) + '%');
     assertSuccessDialog(app);
@@ -439,12 +502,13 @@ test('UI progresses beyond every five-level boundary to level 31 without wrappin
     assert.equal(app.commandButtons().length, 0);
   }
   assert.equal(levelNumber(app), 32);
+  assert.equal(app.generationCount(), 32, 'generate once on each new level');
 });
 
 test('UI highlights each command and turns in place; restart preserves the current level', () => {
   const app = makeApp();
   for (let number = 1; number < 6; number += 1) { winLevel(app, number); app.click('next'); }
-  const level = game.createLevel(6);
+  const level = app.course();
   app.add(level.solution); app.click('go');
   for (let index = 0; index < level.solution.length; index += 1) {
     const before = { left: app.element('bee').style.left, top: app.element('bee').style.top };
@@ -468,7 +532,7 @@ test('UI highlights each command and turns in place; restart preserves the curre
 
 test('UI opens a failure dialog at edges and clears the program for a fresh retry on the same board', () => {
   const app = makeApp();
-  const start = game.createLevel(1).start;
+  const course = app.course(), start = course.start;
   const board = app.element('cells').innerHTML;
   app.add(Array(6).fill('F')); app.click('go'); app.finish();
   assertFailureDialog(app, /^もういっかい ためしてみよう$/);
@@ -487,6 +551,8 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   assert.equal(app.element('result').hidden, true);
   assert.equal(levelNumber(app), 1);
   assert.equal(app.element('cells').innerHTML, board);
+  assert.deepEqual(app.course(), course, 'retry must preserve start, goal, path and rocks');
+  assert.equal(app.generationCount(), 1, 'retry must reuse the drawn course');
   assert.equal(app.commandButtons().length, 0);
   assert.equal(app.element('command-count').textContent, '0 / 12');
   assert.equal(app.element('bee').style.left, (start.x * 20) + '%');
@@ -537,7 +603,7 @@ for (const scenario of [
 test('UI stops beside a rock and can solve with a new program after retry', () => {
   const app = makeApp();
   for (let number = 1; number < 11; number += 1) { winLevel(app, number); app.click('next'); }
-  const level = game.createLevel(11);
+  const level = app.course();
   const board = app.element('cells').innerHTML;
   let collision = null;
   for (const rock of level.obstacles) {
@@ -566,6 +632,8 @@ test('UI stops beside a rock and can solve with a new program after retry', () =
   assert.equal(app.commandButtons().length, 0);
   assert.equal(app.element('result').hidden, true);
   assert.equal(app.element('cells').innerHTML, board);
+  assert.deepEqual(app.course(), level, 'retry after hitting a rock must preserve the whole course');
+  assert.equal(app.generationCount(), 11);
   assert.equal(app.element('bee').style.left, (level.start.x * 20) + '%');
   assert.equal(app.element('bee').style.top, (level.start.y * 20) + '%');
   winLevel(app, 11);
