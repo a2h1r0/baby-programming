@@ -4,13 +4,18 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Verify the GitHub App connection without deploying
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   test:
-    if: github.repository == 'a2h1r0/baby-programming' && github.ref == 'refs/heads/main'
+    if: github.repository == 'a2h1r0/baby-programming' && (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.verify_only))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +38,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Skip an outdated publication
+        if: ${{ !inputs.verify_only }}
         id: latest
         shell: bash
         env:
@@ -46,7 +52,7 @@ jobs:
             echo 'current=false' >> "$GITHUB_OUTPUT"
           fi
       - name: Create a short-lived token for the personal site
-        if: steps.latest.outputs.current == 'true'
+        if: inputs.verify_only || steps.latest.outputs.current == 'true'
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
@@ -55,8 +61,19 @@ jobs:
           owner: a2h1r0
           repositories: personal-page
           permission-actions: write
+      - name: Verify access to the personal site workflow without deploying
+        if: inputs.verify_only
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          state="$(gh api repos/a2h1r0/personal-page/actions/workflows/deploy.yml --jq '.state')"
+          if [ "$state" != 'active' ]; then
+            echo 'The personal site deployment workflow is not active.' >&2
+            exit 1
+          fi
+          echo 'GitHub App authentication and access to the active personal site workflow are verified.'
       - name: Trigger the personal site deployment with the tested revision
-        if: steps.latest.outputs.current == 'true'
+        if: ${{ !inputs.verify_only && steps.latest.outputs.current == 'true' }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SOURCE_SHA: ${{ github.sha }}
