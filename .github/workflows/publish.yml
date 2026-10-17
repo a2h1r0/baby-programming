@@ -4,13 +4,18 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Verify the GitHub App connection without deploying
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   test:
-    if: github.repository == 'a2h1r0/baby-programming' && github.ref == 'refs/heads/main'
+    if: github.repository == 'a2h1r0/baby-programming' && (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.verify_only))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,51 +34,47 @@ jobs:
       group: personal-page-baby-programming
       cancel-in-progress: false
     steps:
-      - name: Check out the tested game
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          path: source
           persist-credentials: false
-      - name: Check out the publication repository using its deploy key
-        uses: actions/checkout@v4
-        with:
-          repository: a2h1r0/personal-page
-          ref: master
-          path: site
-          ssh-key: ${{ secrets.PERSONAL_PAGE_DEPLOY_KEY }}
-      - name: Copy the page and sharing assets
-        run: |
-          mkdir -p site/src/pages/apps/baby-programming/bee-and-flower site/public/apps/baby-programming/bee-and-flower
-          cp source/bee-and-flower/index.html site/src/pages/apps/baby-programming/bee-and-flower/
-          cp source/bee-and-flower/favicon.ico source/bee-and-flower/image.png site/public/apps/baby-programming/bee-and-flower/
-      - name: Publish the app without changing other site files
+      - name: Skip an outdated publication
+        if: ${{ !inputs.verify_only }}
+        id: latest
         shell: bash
         env:
           SOURCE_SHA: ${{ github.sha }}
         run: |
-          set -euo pipefail
-          cd site
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- src/pages/apps/baby-programming/bee-and-flower/index.html public/apps/baby-programming/bee-and-flower/favicon.ico public/apps/baby-programming/bee-and-flower/image.png
-          if git diff --cached --quiet; then
-            echo 'The published page is already up to date.'
-            exit 0
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$SOURCE_SHA" = "$latest" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'A newer main commit exists; skip this outdated publication.'
+            echo 'current=false' >> "$GITHUB_OUTPUT"
           fi
-          git commit -m "Publish baby-programming from ${SOURCE_SHA}"
-          for attempt in 1 2 3; do
-            git -C ../source fetch --no-tags origin main
-            if [ "$(git -C ../source rev-parse FETCH_HEAD)" != "$SOURCE_SHA" ]; then
-              echo 'A newer main commit exists; skip this outdated publication.'
-              exit 0
-            fi
-            if git push origin HEAD:master; then
-              exit 0
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo 'Publication failed. Check repository permissions, branch rules, or conflicting changes.' >&2
-              exit 1
-            fi
-            git fetch --no-tags origin master
-            git rebase origin/master
-          done
+      - name: Create a short-lived token for the personal site
+        if: inputs.verify_only || steps.latest.outputs.current == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.SITE_DEPLOY_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SITE_DEPLOY_APP_PRIVATE_KEY }}
+          owner: a2h1r0
+          repositories: personal-page
+          permission-actions: write
+      - name: Verify access to the personal site workflow without deploying
+        if: inputs.verify_only
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          state="$(gh api repos/a2h1r0/personal-page/actions/workflows/deploy.yml --jq '.state')"
+          if [ "$state" != 'active' ]; then
+            echo 'The personal site deployment workflow is not active.' >&2
+            exit 1
+          fi
+          echo 'GitHub App authentication and access to the active personal site workflow are verified.'
+      - name: Trigger the personal site deployment with the tested revision
+        if: ${{ !inputs.verify_only && steps.latest.outputs.current == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: gh workflow run deploy.yml --repo a2h1r0/personal-page --ref master --raw-field game_revision="$SOURCE_SHA"
