@@ -77,4 +77,4 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SOURCE_SHA: ${{ github.sha }}
-        run: gh workflow run deploy.yml --repo a2h1r0/personal-page --ref master --raw-field game_revision="$SOURCE_SHA"
+        run: gh workflow run deploy.yml --repo a2h1r0/personal-page --ref main --raw-field game_revision="$SOURCE_SHA"
