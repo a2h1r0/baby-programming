@@ -388,7 +388,7 @@ function assertFailureDialog(app, reason) {
   assert.equal(app.focused(), app.element('retry'));
   assert.match(app.element('status').className, /retry/);
   assert.match(app.element('status').textContent, reason);
-  for (const id of ['forward', 'left', 'right', 'go', 'undo', 'restart']) {
+  for (const id of ['forward', 'left', 'right', 'go', 'restart']) {
     assert.equal(app.element(id).disabled, true, id + ' must stay locked until retry');
   }
   assert.ok(app.commandButtons().every(button => button.disabled));
@@ -411,7 +411,7 @@ test('UI explains the game to parents on every visit and requires starting befor
   assert.equal(app.focused(), app.element('intro-title'));
   assert.equal(app.element('start').disabled, false);
   assert.equal(app.element('start').textContent, 'スタート');
-  for (const id of ['forward', 'left', 'right', 'go', 'undo', 'restart']) {
+  for (const id of ['forward', 'left', 'right', 'go', 'restart']) {
     assert.equal(app.element(id).disabled, true);
     app.click(id);
   }
@@ -450,7 +450,7 @@ test('UI starts at level 1, hides turns, edits commands, and enforces 12-command
   assert.equal(app.element('command-count').textContent, '12 / 12');
   assert.equal(app.commandButtons().length, 12);
   assert.equal(app.element('forward').disabled, true);
-  app.click('undo');
+  app.click('program', { parentNode: app.commandButtons()[11] });
   assert.equal(app.commandButtons().length, 11);
   assert.equal(app.element('forward').disabled, false);
   const button = app.commandButtons()[4];
@@ -470,7 +470,7 @@ test('fresh visits draw different maps while each visit keeps its course', () =>
     const app = makeApp({ random: seededRandom(seed * 104729) });
     const course = app.course();
     courses.add(JSON.stringify([course.start, course.goal]));
-    app.add(['F']); app.click('undo'); app.click('restart');
+    app.add(['F']); app.click('restart');
     assert.deepEqual(app.course(), course);
     assert.equal(app.generationCount(), 1);
   }
@@ -486,9 +486,9 @@ test('UI progresses beyond every five-level boundary to level 31 without wrappin
     const level = app.course();
     app.add(shortestSolution(level));
     app.click('go');
-    for (const id of ['forward', 'left', 'right', 'go', 'undo', 'restart']) assert.equal(app.element(id).disabled, true);
+    for (const id of ['forward', 'left', 'right', 'go', 'restart']) assert.equal(app.element(id).disabled, true);
     const count = app.commandButtons().length;
-    app.click('undo'); app.click('forward'); app.click('restart');
+    app.click('forward'); app.click('restart');
     assert.equal(app.commandButtons().length, count);
     app.finish();
     const goal = level.goal;
@@ -545,7 +545,7 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   const gridX = Math.round(x / (100 / 7)) - 1, gridY = Math.round(y / (100 / 7)) - 1;
   assert.ok(gridX === -1 || gridX === 5 || gridY === -1 || gridY === 5,
     'an overshoot must show the bee exactly one cell into the margin');
-  for (const id of ['forward', 'undo', 'go', 'restart', 'next']) app.click(id);
+  for (const id of ['forward', 'go', 'restart', 'next']) app.click(id);
   app.click('program', { parentNode: app.commandButtons()[0] });
   assert.equal(levelNumber(app), 1);
   assert.deepEqual(app.commandButtons().map(button => button.getAttribute('aria-label')), commands);
@@ -566,7 +566,7 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   assert.doesNotMatch(app.element('status').className, /retry/);
   assert.equal(app.focused(), app.element('forward'));
   for (const id of ['forward', 'restart']) assert.equal(app.element(id).disabled, false);
-  for (const id of ['go', 'undo']) assert.equal(app.element(id).disabled, true);
+  for (const id of ['go']) assert.equal(app.element(id).disabled, true);
   app.click('go');
   assert.equal(app.pendingTimers(), 0, 'an empty retry cannot start a run');
   winLevel(app, 1);
@@ -671,7 +671,7 @@ test('hint button plots a translucent ghost where the queued program takes the b
   assert.equal(app.element('ghost').style.left, boardPct(start.x + dx));
   assert.equal(app.element('ghost').style.top, boardPct(start.y + dy));
   assert.equal(app.element('ghost-direction').style.transform, 'rotate(' + (start.direction * 90) + 'deg)');
-  app.click('undo');
+  app.click('restart');
   assert.equal(app.element('ghost').hidden, true, 'an empty program has nothing to project');
   /* Overshoot: the ghost steps into the margin exactly like a real run. */
   const steps = dx === 1 ? 5 - start.x : dx === -1 ? start.x + 1 : dy === 1 ? 5 - start.y : start.y + 1;
@@ -710,4 +710,11 @@ test('hint button is offered through level 15 and gone from level 16', () => {
   assert.equal(app.element('hint').hidden, true);
   assert.equal(app.element('hint').getAttribute('aria-pressed'), 'false', 'the hint turns off with the button');
   assert.equal(app.element('ghost').hidden, true);
+});
+
+test('there is no undo button, and the restart button is labelled やりなおす', () => {
+  assert.doesNotMatch(html, /id="undo"/);
+  assert.doesNotMatch(html, /intro-undo/);
+  const restart = html.match(/<button id="restart"[^>]*>([\s\S]*?)<\/button>/);
+  assert.ok(restart && restart[1].includes('やりなおす'), 'restart shows its text label next to the icon');
 });
