@@ -363,8 +363,8 @@ function makeApp({ startGame = true, random = seededRandom(12345) } = {}) {
 }
 
 function levelNumber(app) { return Number(app.element('level-text').textContent.match(/\d+/)[0]); }
-/* The board draws the 5x5 course centered in a 9x9 grid with a two-cell margin. */
-function boardPct(value) { return ((value + 2) * 100 / 9) + '%'; }
+/* The board draws the 5x5 course centered in a 7x7 grid with a one-cell margin. */
+function boardPct(value) { return ((value + 1) * 100 / 7) + '%'; }
 function assertSuccessDialog(app) {
   assert.equal(app.element('intro').hidden, true);
   assert.equal(app.element('result').hidden, false);
@@ -541,8 +541,8 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   assert.equal(app.commandButtons().length, 6);
   const commands = app.commandButtons().map(button => button.getAttribute('aria-label'));
   const x = parseFloat(app.element('bee').style.left), y = parseFloat(app.element('bee').style.top);
-  assert.ok(x >= 0 && x <= 80 && y >= 0 && y <= 80, 'bee must stay inside the drawn board');
-  const gridX = Math.round(x / (100 / 9)) - 2, gridY = Math.round(y / (100 / 9)) - 2;
+  assert.ok(x >= 0 && x <= 600 / 7 && y >= 0 && y <= 600 / 7, 'bee must stay inside the drawn board');
+  const gridX = Math.round(x / (100 / 7)) - 1, gridY = Math.round(y / (100 / 7)) - 1;
   assert.ok(gridX === -1 || gridX === 5 || gridY === -1 || gridY === 5,
     'an overshoot must show the bee exactly one cell into the margin');
   for (const id of ['forward', 'undo', 'go', 'restart', 'next']) app.click(id);
@@ -644,13 +644,13 @@ test('UI stops beside a rock and can solve with a new program after retry', () =
   winLevel(app, 11);
 });
 
-test('UI frames the 5x5 course with a paler two-cell margin on every side', () => {
+test('UI frames the 5x5 course with a paler one-cell margin on every side', () => {
   const app = makeApp();
   const cells = app.element('cells').innerHTML;
-  assert.equal((cells.match(/class="cell margin"/g) || []).length, 56,
-    'the margin adds two cells around the course: 9x9 minus 5x5');
-  assert.equal((cells.match(/<div class="cell/g) || []).length, 81,
-    'the drawn grid is 9x9 while the course stays 5x5');
+  assert.equal((cells.match(/class="cell margin"/g) || []).length, 24,
+    'the margin adds one cell around the course: 7x7 minus 5x5');
+  assert.equal((cells.match(/<div class="cell/g) || []).length, 49,
+    'the drawn grid is 7x7 while the course stays 5x5');
 });
 
 test('hint button plots a translucent ghost where the queued program takes the bee', () => {
@@ -658,6 +658,9 @@ test('hint button plots a translucent ghost where the queued program takes the b
   const course = app.course(), start = course.start;
   assert.equal(app.element('hint').disabled, false);
   assert.equal(app.element('hint').getAttribute('aria-pressed'), 'false');
+  assert.ok(app.element('hint-icon').innerHTML.length > 0);
+  assert.equal(app.element('hint-icon').innerHTML, app.element('bee-direction').innerHTML,
+    'the hint button carries the bee icon');
   assert.equal(app.element('ghost').hidden, true);
   app.add(['F']);
   assert.equal(app.element('ghost').hidden, true, 'ghost stays hidden until the hint is on');

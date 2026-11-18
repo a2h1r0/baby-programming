@@ -50,18 +50,18 @@ svg { display: block; }
 .level-dot.done { background: #b4cb9d; }
 .level-text { font-size: 15px; margin-right: 12px; }
 .play-layout { display: flex; align-items: center; justify-content: space-between; }
-.field-panel { width: 564px; padding-right: 24px; }
+.field-panel { width: 444px; padding-right: 24px; }
 .board.retry { outline: 5px solid #e3a057; outline-offset: -5px; }
 .board.retry .cell { background: #f4e3ce; }
 .board.retry .cell.route { background: #ffdc9d; }
 .board.retry .cell.margin { background: #f9efdd; }
-.board-frame { position: relative; width: 540px; height: 540px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
+.board-frame { position: relative; width: 420px; height: 420px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
 .board { position: relative; width: 100%; height: 100%; background: #eef1de; }
-.cell { position: absolute; width: calc(100% / 9); height: calc(100% / 9); border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
+.cell { position: absolute; width: calc(100% / 7); height: calc(100% / 7); border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
 .cell.route { background: #fff0ba; }
 .cell.margin { background: #f4f2e6; }
-.flower { position: absolute; width: calc(100% / 9 * .85); height: calc(100% / 9 * .85); margin: calc(100% / 9 * .075); }
-.bee { position: absolute; width: calc(100% / 9 * .9); height: calc(100% / 9 * .9); margin: calc(100% / 9 * .05); z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
+.flower { position: absolute; width: calc(100% / 7 * .85); height: calc(100% / 7 * .85); margin: calc(100% / 7 * .075); }
+.bee { position: absolute; width: calc(100% / 7 * .9); height: calc(100% / 7 * .9); margin: calc(100% / 7 * .05); z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
 .bee-direction { width: 100%; height: 100%; transition: transform .55s ease-in-out; }
 .bee svg, .flower svg { width: 100%; height: 100%; }
 .bee.happy svg { animation: happy .7s ease-in-out infinite alternate; }
@@ -96,9 +96,9 @@ svg { display: block; }
 .status.retry { background: #ffebce; }
 .cell.obstacle { background: #dce2d0; }
 .cell.obstacle svg { position: absolute; left: 10%; top: 10%; width: 80%; height: 80%; }
-@media (max-width: 1100px) { .shell { padding: 20px 18px; } .field-panel { width: 47%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 450px; height: 450px; max-width: 100%; } }
-@media (max-height: 755px) and (min-width: 860px) { .shell { padding-top: 16px; padding-bottom: 16px; } .toolbar { margin-bottom: 20px; } .board-frame { width: 486px; height: 486px; max-width: 100%; } .direction-button { height: 82px; } .go { height: 68px; } }
-@media (max-width: 859px) { .shell { padding: 16px 12px; } .toolbar { margin-bottom: 20px; } .play-layout { flex-wrap: wrap; justify-content: center; } .field-panel { width: 100%; padding: 0; } .board-frame { width: 396px; height: 396px; max-width: 100%; margin: auto; } .control-panel { width: 448px; max-width: 100%; margin-top: 24px; } .result { padding: 12px; gap: 4px; } .result #result-icon svg { width: 44px; height: 44px; } .result h2 { font-size: 26px; } }
+@media (max-width: 1100px) { .shell { padding: 20px 18px; } .field-panel { width: 47%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 350px; height: 350px; max-width: 100%; } }
+@media (max-height: 755px) and (min-width: 860px) { .shell { padding-top: 16px; padding-bottom: 16px; } .toolbar { margin-bottom: 20px; } .board-frame { width: 378px; height: 378px; max-width: 100%; } .direction-button { height: 82px; } .go { height: 68px; } }
+@media (max-width: 859px) { .shell { padding: 16px 12px; } .toolbar { margin-bottom: 20px; } .play-layout { flex-wrap: wrap; justify-content: center; } .field-panel { width: 100%; padding: 0; } .board-frame { width: 308px; height: 308px; max-width: 100%; margin: auto; } .control-panel { width: 448px; max-width: 100%; margin-top: 24px; } .result { padding: 12px; gap: 4px; } .result #result-icon svg { width: 44px; height: 44px; } .result h2 { font-size: 26px; } }
 @media (max-width: 439px) { .command-slot { width: 25%; flex-basis: 25%; } .program { min-height: 216px; } .level-text { font-size: 14px; margin-right: 4px; } .level-dot { margin: 0 3px; } }
 @media (max-width: 600px) { .intro { padding: 12px; } .intro-card { padding: 20px; border-radius: 22px; } .intro h1 { font-size: 25px; } .intro-bee { width: 52px; height: 52px; flex-basis: 52px; } .intro-lead { margin-bottom: 16px; } }
 @media (prefers-reduced-motion: reduce) { .bee, .bee-direction { transition: none; } .bee.happy svg, .result #result-icon svg { animation: none; } }
@@ -299,8 +299,7 @@ var BeeGame = (function () {
     play: '<path d="M18 9l35 23-35 23Z" fill="currentColor"/>',
     undo: '<path d="M26 12L8 28l18 16V33h11c11 0 14 7 14 18h10c0-19-8-28-24-28H26Z" fill="currentColor"/>',
     reset: '<path d="M47 17a22 22 0 1 0 6 25" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M40 4v22h22Z" fill="currentColor"/>',
-    star: '<path d="M32 5l8 17 19 3-14 14 3 20-16-9-16 9 3-20L5 25l19-3Z" fill="#f6bf42" stroke="#dca12c" stroke-width="2"/>',
-    eye: '<path d="M32 17C18 17 7 32 7 32s11 15 25 15 25-15 25-15S46 17 32 17Z" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="32" cy="32" r="8" fill="currentColor"/>'
+    star: '<path d="M32 5l8 17 19 3-14 14 3 20-16-9-16 9 3-20L5 25l19-3Z" fill="#f6bf42" stroke="#dca12c" stroke-width="2"/>'
   };
   var rockArt = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M12 74L18 44 39 22 70 24 89 53 85 78 58 86 28 84Z" fill="#9ca5a0" stroke="#747f79" stroke-width="4" stroke-linejoin="round"/><path d="M18 44l29 10 23-30M47 54l11 32M47 54l42-1" fill="none" stroke="#bec5bf" stroke-width="4" stroke-linejoin="round"/></svg>';
   var beeArt = '<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="25" cy="49" rx="18" ry="24" fill="#fff" stroke="#86b8b1" stroke-width="3"/><ellipse cx="75" cy="49" rx="18" ry="24" fill="#fff" stroke="#86b8b1" stroke-width="3"/><ellipse cx="50" cy="57" rx="23" ry="32" fill="#ffd05b" stroke="#644b32" stroke-width="3"/><path d="M29 53h42M31 69h38" stroke="#644b32" stroke-width="10"/><circle cx="50" cy="28" r="21" fill="#ffd05b" stroke="#644b32" stroke-width="3"/><path d="M39 10L34 3M61 10l5-7" stroke="#644b32" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="26" r="3" fill="#473e32"/><circle cx="58" cy="26" r="3" fill="#473e32"/><path d="M44 34q6 6 12 0" fill="none" stroke="#473e32" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="32" r="4" fill="#f6976a"/><circle cx="65" cy="32" r="4" fill="#f6976a"/><path d="M50 4l-7 8h14Z" fill="#e07c37"/></svg>';
@@ -321,7 +320,7 @@ var BeeGame = (function () {
   function placeBee(instant) {
     var bee = byId("bee"), direction = byId("bee-direction");
     if (instant) { bee.style.transition = "none"; direction.style.transition = "none"; }
-    bee.style.left = ((position.x + 2) * 100 / 9) + "%"; bee.style.top = ((position.y + 2) * 100 / 9) + "%";
+    bee.style.left = ((position.x + 1) * 100 / 7) + "%"; bee.style.top = ((position.y + 1) * 100 / 7) + "%";
     direction.style.transform = "rotate(" + angle + "deg)";
     var beePlace = (position.x < 0 || position.x >= course().columns || position.y < 0 || position.y >= course().rows)
       ? "マスのそと" : "左から" + (position.x + 1) + "、上から" + (position.y + 1);
@@ -345,13 +344,24 @@ var BeeGame = (function () {
     return { position: pos, angle: ang };
   }
   function renderGhost() {
-    var ghost = byId("ghost");
+    var ghost = byId("ghost"), direction = byId("ghost-direction");
     if (!hint || !started || running || won || failed || commands.length === 0) { ghost.hidden = true; return; }
-    var state = ghostState();
-    ghost.hidden = false;
-    ghost.style.left = ((state.position.x + 2) * 100 / 9) + "%";
-    ghost.style.top = ((state.position.y + 2) * 100 / 9) + "%";
-    byId("ghost-direction").style.transform = "rotate(" + state.angle + "deg)";
+    var state = ghostState(), start;
+    if (ghost.hidden) {
+      /* Appear at the start cell first, so the ghost slides out to the
+         projected cell instead of popping in at the destination. */
+      start = BeeGame.start(course());
+      ghost.hidden = false;
+      ghost.style.transition = "none"; direction.style.transition = "none";
+      ghost.style.left = ((start.x + 1) * 100 / 7) + "%";
+      ghost.style.top = ((start.y + 1) * 100 / 7) + "%";
+      direction.style.transform = "rotate(" + (start.direction * 90) + "deg)";
+      void ghost.offsetWidth;
+      ghost.style.transition = ""; direction.style.transition = "";
+    }
+    ghost.style.left = ((state.position.x + 1) * 100 / 7) + "%";
+    ghost.style.top = ((state.position.y + 1) * 100 / 7) + "%";
+    direction.style.transform = "rotate(" + state.angle + "deg)";
   }
   function renderProgram() {
     var list = byId("program"), i, item, button;
@@ -391,10 +401,10 @@ var BeeGame = (function () {
     /* Keep the drawn course while editing or retrying; generate only on entry. */
     if (!currentLevel || currentLevel.number !== levelNumber) { currentLevel = BeeGame.createLevel(levelNumber); }
     var current = course(), x, y, i, routeCell, cell, html = "";
-    for (y = -2; y < current.rows + 2; y += 1) {
-      for (x = -2; x < current.columns + 2; x += 1) {
+    for (y = -1; y < current.rows + 1; y += 1) {
+      for (x = -1; x < current.columns + 1; x += 1) {
         if (x < 0 || x >= current.columns || y < 0 || y >= current.rows) {
-          html += '<div class="cell margin" style="left:' + ((x + 2) * 100 / 9) + '%;top:' + ((y + 2) * 100 / 9) + '%"></div>';
+          html += '<div class="cell margin" style="left:' + ((x + 1) * 100 / 7) + '%;top:' + ((y + 1) * 100 / 7) + '%"></div>';
           continue;
         }
         routeCell = false;
@@ -403,11 +413,11 @@ var BeeGame = (function () {
         var rock = false, r;
         for (r = 0; r < current.obstacles.length; r += 1) { if (current.obstacles[r].x === x && current.obstacles[r].y === y) { rock = true; } }
         if (rock) { cell += " obstacle"; }
-        html += '<div class="' + cell + '" style="left:' + ((x + 2) * 100 / 9) + '%;top:' + ((y + 2) * 100 / 9) + '%">' + (rock ? rockArt : '') + '</div>';
+        html += '<div class="' + cell + '" style="left:' + ((x + 1) * 100 / 7) + '%;top:' + ((y + 1) * 100 / 7) + '%">' + (rock ? rockArt : '') + '</div>';
       }
     }
     byId("cells").innerHTML = html;
-    byId("flower").style.left = ((current.goal.x + 2) * 100 / 9) + "%"; byId("flower").style.top = ((current.goal.y + 2) * 100 / 9) + "%";
+    byId("flower").style.left = ((current.goal.x + 1) * 100 / 7) + "%"; byId("flower").style.top = ((current.goal.y + 1) * 100 / 7) + "%";
     byId("game").className = current.allowTurns ? "" : "straight-only";
     byId("left").hidden = !current.allowTurns; byId("right").hidden = !current.allowTurns;
     byId("level-text").textContent = "レベル " + levelNumber;
@@ -477,7 +487,7 @@ var BeeGame = (function () {
   /* A single click listener handles both a mouse click and the browser's touch click. */
   function onClick(id, callback) { byId(id).addEventListener("click", callback, false); }
   byId("flower").innerHTML = flowerArt; byId("bee-direction").innerHTML = beeArt;
-  byId("ghost-direction").innerHTML = beeArt; byId("hint-icon").innerHTML = icon("eye");
+  byId("ghost-direction").innerHTML = beeArt; byId("hint-icon").innerHTML = beeArt;
   byId("left-icon").innerHTML = icon("L"); byId("forward-icon").innerHTML = icon("F"); byId("right-icon").innerHTML = icon("R");
   byId("go-icon").innerHTML = icon("play"); byId("undo-icon").innerHTML = icon("undo"); byId("restart-icon").innerHTML = icon("reset");
   byId("result-icon").innerHTML = beeArt;
