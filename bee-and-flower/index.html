@@ -53,15 +53,15 @@ svg { display: block; }
 .field-panel { width: 444px; padding-right: 24px; }
 .board.retry { outline: 5px solid #e3a057; outline-offset: -5px; }
 .board.retry .cell { background: #f4e3ce; }
-.board.retry .cell.route { background: #ffdc9d; }
+.board.retry .cell.route { background: #ffd166; }
 .board.retry .cell.margin { background: #f9efdd; }
 .board-frame { position: relative; width: 420px; height: 420px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
 .board { position: relative; width: 100%; height: 100%; background: #eef1de; }
 .cell { position: absolute; width: calc(100% / 7); height: calc(100% / 7); border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
-.cell.route { background: #fff0ba; }
+.cell.route { background: #ffe066; }
 .cell.margin { background: #f4f2e6; }
 .flower { position: absolute; width: calc(100% / 7 * .85); height: calc(100% / 7 * .85); margin: calc(100% / 7 * .075); }
-.bee { position: absolute; width: calc(100% / 7 * .9); height: calc(100% / 7 * .9); margin: calc(100% / 7 * .05); z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
+.bee { position: absolute; width: calc(100% / 7 * .9); height: calc(100% / 7 * .9); margin: calc(100% / 7 * .05); z-index: 2; transition: left .85s ease-in-out, top .85s ease-in-out; }
 .bee-direction { width: 100%; height: 100%; transition: transform .55s ease-in-out; }
 .bee svg, .flower svg { width: 100%; height: 100%; }
 .bee.happy svg { animation: happy .7s ease-in-out infinite alternate; }
@@ -466,17 +466,17 @@ var BeeGame = (function () {
     if (index >= commands.length) { finish(BeeGame.outcome(position, course())); return; }
     active = index; renderProgram(); status((index + 1) + "ばんめ：" + labels[commands[index]]);
     var next = BeeGame.step(position, commands[index], course());
-    if (next.blocked) { timer = window.setTimeout(function () { finish("blocked"); }, 650); return; }
+    if (next.blocked) { timer = window.setTimeout(function () { finish("blocked"); }, 1000); return; }
     if (next.outside) {
       /* Show the overshoot: the bee steps into the paler margin before the dialog opens. */
       position = next; placeBee(false);
-      timer = window.setTimeout(function () { finish("outside"); }, 700);
+      timer = window.setTimeout(function () { finish("outside"); }, 1100);
       return;
     }
     if (commands[index] === "L") { angle -= 90; }
     if (commands[index] === "R") { angle += 90; }
     position = next; placeBee(false);
-    timer = window.setTimeout(function () { completed = index + 1; execute(index + 1); }, 700);
+    timer = window.setTimeout(function () { completed = index + 1; execute(index + 1); }, 1100);
   }
   function go() {
     if (!started || running || won || failed || commands.length === 0) { return; }
