@@ -697,3 +697,17 @@ test('ghost turns with the queued program once turns are unlocked', () => {
   app.add(['R', 'R']);
   assert.equal(app.element('ghost-direction').style.transform, 'rotate(' + (start.direction * 90 + 90) + 'deg)');
 });
+
+test('hint button is offered through level 15 and gone from level 16', () => {
+  const app = makeApp();
+  for (let number = 1; number < 15; number += 1) { winLevel(app, number); app.click('next'); }
+  assert.equal(levelNumber(app), 15);
+  assert.equal(app.element('hint').hidden, false);
+  app.click('hint');
+  assert.equal(app.element('hint').getAttribute('aria-pressed'), 'true');
+  winLevel(app, 15); app.click('next');
+  assert.equal(levelNumber(app), 16);
+  assert.equal(app.element('hint').hidden, true);
+  assert.equal(app.element('hint').getAttribute('aria-pressed'), 'false', 'the hint turns off with the button');
+  assert.equal(app.element('ghost').hidden, true);
+});
