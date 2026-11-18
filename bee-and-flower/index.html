@@ -38,29 +38,35 @@ svg { display: block; }
 .intro-tool svg { width: 24px; height: 24px; margin-right: 8px; }
 .intro-note { margin: 0 0 16px; color: #657969; font-size: 13px; line-height: 1.6; }
 .intro-start { width: 100%; border-radius: 18px; background: #3e7253; color: #fff; font-size: 20px; font-weight: bold; }
-.shell { max-width: 980px; margin: 0 auto; padding: 24px; }
+.shell { max-width: 1060px; margin: 0 auto; padding: 24px; }
 .toolbar { display: flex; align-items: center; justify-content: flex-end; min-height: 32px; margin: 0 0 24px; }
+.hint-button { display: flex; align-items: center; background: #fff; border: 2px solid #dbe2d0; border-radius: 18px; padding: 8px 16px; margin-right: 16px; font-size: 16px; font-weight: bold; }
+.hint-button svg { width: 30px; height: 30px; margin-right: 8px; }
+.hint-button[aria-pressed="true"] { background: #ffcf62; border-color: #efbe4e; }
+.bee.ghost { z-index: 1; opacity: .42; pointer-events: none; }
 .level-dots { display: flex; align-items: center; }
 .level-dot { width: 12px; height: 12px; border-radius: 50%; background: #dce2cd; margin: 0 5px; }
 .level-dot.current { background: #477255; width: 20px; height: 20px; }
 .level-dot.done { background: #b4cb9d; }
 .level-text { font-size: 15px; margin-right: 12px; }
 .play-layout { display: flex; align-items: center; justify-content: space-between; }
-.field-panel { width: 432px; padding-right: 24px; }
+.field-panel { width: 564px; padding-right: 24px; }
 .board.retry { outline: 5px solid #e3a057; outline-offset: -5px; }
 .board.retry .cell { background: #f4e3ce; }
 .board.retry .cell.route { background: #ffdc9d; }
-.board-frame { position: relative; width: 400px; height: 400px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
+.board.retry .cell.margin { background: #f9efdd; }
+.board-frame { position: relative; width: 540px; height: 540px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
 .board { position: relative; width: 100%; height: 100%; background: #eef1de; }
-.cell { position: absolute; width: 20%; height: 20%; border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
+.cell { position: absolute; width: calc(100% / 9); height: calc(100% / 9); border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
 .cell.route { background: #fff0ba; }
-.flower { position: absolute; width: 17%; height: 17%; margin: 1.5%; }
-.bee { position: absolute; width: 18%; height: 18%; margin: 1%; z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
+.cell.margin { background: #f4f2e6; }
+.flower { position: absolute; width: calc(100% / 9 * .85); height: calc(100% / 9 * .85); margin: calc(100% / 9 * .075); }
+.bee { position: absolute; width: calc(100% / 9 * .9); height: calc(100% / 9 * .9); margin: calc(100% / 9 * .05); z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
 .bee-direction { width: 100%; height: 100%; transition: transform .55s ease-in-out; }
 .bee svg, .flower svg { width: 100%; height: 100%; }
 .bee.happy svg { animation: happy .7s ease-in-out infinite alternate; }
 @keyframes happy { from { transform: translateY(0) scale(1); } to { transform: translateY(-9px) scale(1.09); } }
-.control-panel { width: 448px; }
+.control-panel { width: 448px; position: relative; }
 .program { display: flex; flex-wrap: wrap; align-content: flex-start; min-height: 148px; margin: 0 0 12px; padding: 0; list-style: none; }
 .command-slot { width: calc(100% / 6); height: 64px; margin: 4px 0; flex: 0 0 calc(100% / 6); display: flex; justify-content: center; }
 .command-chip { width: 64px; height: 64px; padding: 10px; border-radius: 15px; background: #fff; border: 2px solid #d4dfcc; position: relative; }
@@ -79,7 +85,7 @@ svg { display: block; }
 .edit-buttons { display: flex; margin: 16px -5px 0; }
 .edit-button { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid #dbe2d0; border-radius: 18px; margin: 0 5px; padding: 0 8px; font-size: 16px; font-weight: bold; }
 .edit-button svg { width: 32px; height: 32px; margin: 0; }
-.result { position: absolute; left: 4%; right: 4%; top: 4%; bottom: 4%; z-index: 5; border-radius: 26px; border: 3px solid #f0cf70; background: rgba(255, 253, 239, .97); text-align: center; padding: 24px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.result { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 5; border-radius: 26px; border: 3px solid #f0cf70; background: rgba(255, 253, 239, .97); box-shadow: 0 7px 0 #dfe7d0; text-align: center; padding: 24px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
 .result #result-icon svg { width: 54px; height: 54px; margin: 0 auto; animation: happy .7s ease-in-out infinite alternate; }
 .result h2 { font-size: 30px; margin: 4px 0; }
 .result button { width: 100%; border-radius: 16px; margin: 3px 0; font-size: 19px; font-weight: bold; background: #3e7253; color: #fff; }
@@ -90,9 +96,9 @@ svg { display: block; }
 .status.retry { background: #ffebce; }
 .cell.obstacle { background: #dce2d0; }
 .cell.obstacle svg { position: absolute; left: 10%; top: 10%; width: 80%; height: 80%; }
-@media (max-width: 980px) { .shell { padding: 20px 18px; } .field-panel { width: 44%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 360px; height: 360px; max-width: 100%; } }
-@media (max-height: 755px) and (min-width: 860px) { .shell { padding-top: 16px; padding-bottom: 16px; } .toolbar { margin-bottom: 20px; } .board-frame { width: 350px; height: 350px; } .direction-button { height: 82px; } .go { height: 68px; } }
-@media (max-width: 859px) { .shell { padding: 16px 12px; } .toolbar { margin-bottom: 20px; } .play-layout { flex-wrap: wrap; justify-content: center; } .field-panel { width: 100%; padding: 0; } .board-frame { width: 280px; height: 280px; margin: auto; } .control-panel { width: 448px; max-width: 100%; margin-top: 24px; } .result { padding: 12px; gap: 4px; } .result #result-icon svg { width: 44px; height: 44px; } .result h2 { font-size: 26px; } }
+@media (max-width: 1100px) { .shell { padding: 20px 18px; } .field-panel { width: 47%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 450px; height: 450px; max-width: 100%; } }
+@media (max-height: 755px) and (min-width: 860px) { .shell { padding-top: 16px; padding-bottom: 16px; } .toolbar { margin-bottom: 20px; } .board-frame { width: 486px; height: 486px; max-width: 100%; } .direction-button { height: 82px; } .go { height: 68px; } }
+@media (max-width: 859px) { .shell { padding: 16px 12px; } .toolbar { margin-bottom: 20px; } .play-layout { flex-wrap: wrap; justify-content: center; } .field-panel { width: 100%; padding: 0; } .board-frame { width: 396px; height: 396px; max-width: 100%; margin: auto; } .control-panel { width: 448px; max-width: 100%; margin-top: 24px; } .result { padding: 12px; gap: 4px; } .result #result-icon svg { width: 44px; height: 44px; } .result h2 { font-size: 26px; } }
 @media (max-width: 439px) { .command-slot { width: 25%; flex-basis: 25%; } .program { min-height: 216px; } .level-text { font-size: 14px; margin-right: 4px; } .level-dot { margin: 0 3px; } }
 @media (max-width: 600px) { .intro { padding: 12px; } .intro-card { padding: 20px; border-radius: 22px; } .intro h1 { font-size: 25px; } .intro-bee { width: 52px; height: 52px; flex-basis: 52px; } .intro-lead { margin-bottom: 16px; } }
 @media (prefers-reduced-motion: reduce) { .bee, .bee-direction { transition: none; } .bee.happy svg, .result #result-icon svg { animation: none; } }
@@ -148,17 +154,13 @@ svg { display: block; }
   <main>
     <section id="game" aria-label="はちさんをうごかそう" aria-hidden="true">
       <div class="toolbar">
+        <button id="hint" class="hint-button" aria-pressed="false" aria-label="ヒント：ならべた めいれいで ハチが どう うごくか みる"><span id="hint-icon" aria-hidden="true"></span>ヒント</button>
         <div class="level-dots"><span id="level-text" class="level-text"></span><span id="dots" style="display:flex" aria-hidden="true"></span></div>
       </div>
       <div class="play-layout">
         <div class="field-panel">
           <div class="board-frame">
-            <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div>
-            <div id="result" class="result" hidden role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="status">
-              <div id="result-icon" aria-hidden="true"></div><h2 id="result-title">できたね！</h2>
-              <button id="next" aria-label="つぎのもんだいへ">つぎへ →</button>
-              <button id="retry" hidden aria-label="おなじレベルでもういっかい">もういっかい ↻</button>
-            </div>
+            <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="ghost" class="bee ghost" hidden aria-hidden="true"><div id="ghost-direction" class="bee-direction"></div></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div>
           </div>
         </div>
         <div class="control-panel">
@@ -171,6 +173,11 @@ svg { display: block; }
           </div>
           <button id="go" class="go" aria-label="ならべた命令をじっこうする"><span id="go-icon" aria-hidden="true"></span>GO</button>
           <div class="edit-buttons"><button id="undo" class="edit-button" aria-label="さいごの命令を1つけす"><span id="undo-icon" aria-hidden="true"></span></button><button id="restart" class="edit-button" aria-label="命令をぜんぶけしてやりなおす"><span id="restart-icon" aria-hidden="true"></span></button></div>
+          <div id="result" class="result" hidden role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="status">
+            <div id="result-icon" aria-hidden="true"></div><h2 id="result-title">できたね！</h2>
+            <button id="next" aria-label="つぎのもんだいへ">つぎへ →</button>
+            <button id="retry" hidden aria-label="おなじレベルでもういっかい">もういっかい ↻</button>
+          </div>
         </div>
       </div>
       <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -292,7 +299,8 @@ var BeeGame = (function () {
     play: '<path d="M18 9l35 23-35 23Z" fill="currentColor"/>',
     undo: '<path d="M26 12L8 28l18 16V33h11c11 0 14 7 14 18h10c0-19-8-28-24-28H26Z" fill="currentColor"/>',
     reset: '<path d="M47 17a22 22 0 1 0 6 25" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M40 4v22h22Z" fill="currentColor"/>',
-    star: '<path d="M32 5l8 17 19 3-14 14 3 20-16-9-16 9 3-20L5 25l19-3Z" fill="#f6bf42" stroke="#dca12c" stroke-width="2"/>'
+    star: '<path d="M32 5l8 17 19 3-14 14 3 20-16-9-16 9 3-20L5 25l19-3Z" fill="#f6bf42" stroke="#dca12c" stroke-width="2"/>',
+    eye: '<path d="M32 17C18 17 7 32 7 32s11 15 25 15 25-15 25-15S46 17 32 17Z" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="32" cy="32" r="8" fill="currentColor"/>'
   };
   var rockArt = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M12 74L18 44 39 22 70 24 89 53 85 78 58 86 28 84Z" fill="#9ca5a0" stroke="#747f79" stroke-width="4" stroke-linejoin="round"/><path d="M18 44l29 10 23-30M47 54l11 32M47 54l42-1" fill="none" stroke="#bec5bf" stroke-width="4" stroke-linejoin="round"/></svg>';
   var beeArt = '<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="25" cy="49" rx="18" ry="24" fill="#fff" stroke="#86b8b1" stroke-width="3"/><ellipse cx="75" cy="49" rx="18" ry="24" fill="#fff" stroke="#86b8b1" stroke-width="3"/><ellipse cx="50" cy="57" rx="23" ry="32" fill="#ffd05b" stroke="#644b32" stroke-width="3"/><path d="M29 53h42M31 69h38" stroke="#644b32" stroke-width="10"/><circle cx="50" cy="28" r="21" fill="#ffd05b" stroke="#644b32" stroke-width="3"/><path d="M39 10L34 3M61 10l5-7" stroke="#644b32" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="26" r="3" fill="#473e32"/><circle cx="58" cy="26" r="3" fill="#473e32"/><path d="M44 34q6 6 12 0" fill="none" stroke="#473e32" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="32" r="4" fill="#f6976a"/><circle cx="65" cy="32" r="4" fill="#f6976a"/><path d="M50 4l-7 8h14Z" fill="#e07c37"/></svg>';
@@ -301,8 +309,9 @@ var BeeGame = (function () {
   function icon(name) { return '<svg viewBox="0 0 64 64" aria-hidden="true">' + icons[name] + '</svg>'; }
   var levelNumber = 1, currentLevel, commands = [], position, angle = 90;
   var started = false, running = false, won = false, failed = false, active = -1, completed = 0, timer = null;
+  var hint = false;
   var labels = { F: "すすむ", L: "ひだり", R: "みぎ" };
-  var inputs = ["forward", "left", "right", "go", "undo", "restart"];
+  var inputs = ["forward", "left", "right", "go", "undo", "restart", "hint"];
   function course() { return currentLevel; }
   function status(text, retry) {
     byId("status").textContent = text;
@@ -312,14 +321,38 @@ var BeeGame = (function () {
   function placeBee(instant) {
     var bee = byId("bee"), direction = byId("bee-direction");
     if (instant) { bee.style.transition = "none"; direction.style.transition = "none"; }
-    bee.style.left = (position.x * 20) + "%"; bee.style.top = (position.y * 20) + "%";
+    bee.style.left = ((position.x + 2) * 100 / 9) + "%"; bee.style.top = ((position.y + 2) * 100 / 9) + "%";
     direction.style.transform = "rotate(" + angle + "deg)";
-    var description = "5かける5のマス目。はちさんは左から" + (position.x + 1) + "、上から" + (position.y + 1) + "、" + ["うえ", "みぎ", "した", "ひだり"][position.direction] + "むき。おはなは左から" + (course().goal.x + 1) + "、上から" + (course().goal.y + 1), r;
+    var beePlace = (position.x < 0 || position.x >= course().columns || position.y < 0 || position.y >= course().rows)
+      ? "マスのそと" : "左から" + (position.x + 1) + "、上から" + (position.y + 1);
+    var description = "5かける5のマス目。はちさんは" + beePlace + "、" + ["うえ", "みぎ", "した", "ひだり"][position.direction] + "むき。おはなは左から" + (course().goal.x + 1) + "、上から" + (course().goal.y + 1), r;
     for (r = 0; r < course().obstacles.length; r += 1) { description += "。いわは左から" + (course().obstacles[r].x + 1) + "、上から" + (course().obstacles[r].y + 1); }
     byId("board").setAttribute("aria-label", description);
     if (instant) { bee.offsetWidth; bee.style.transition = ""; direction.style.transition = ""; }
   }
   function resetPosition() { position = BeeGame.start(course()); angle = position.direction * 90; placeBee(true); byId("bee").className = "bee"; }
+  /* Project the queued program from the start, stopping where a run would stop. */
+  function ghostState() {
+    var pos = BeeGame.start(course()), ang = pos.direction * 90, i, next;
+    for (i = 0; i < commands.length; i += 1) {
+      next = BeeGame.step(pos, commands[i], course());
+      if (next.blocked) { return { position: pos, angle: ang }; }
+      if (commands[i] === "L") { ang -= 90; }
+      if (commands[i] === "R") { ang += 90; }
+      pos = next;
+      if (next.outside) { return { position: pos, angle: ang }; }
+    }
+    return { position: pos, angle: ang };
+  }
+  function renderGhost() {
+    var ghost = byId("ghost");
+    if (!hint || !started || running || won || failed || commands.length === 0) { ghost.hidden = true; return; }
+    var state = ghostState();
+    ghost.hidden = false;
+    ghost.style.left = ((state.position.x + 2) * 100 / 9) + "%";
+    ghost.style.top = ((state.position.y + 2) * 100 / 9) + "%";
+    byId("ghost-direction").style.transform = "rotate(" + state.angle + "deg)";
+  }
   function renderProgram() {
     var list = byId("program"), i, item, button;
     list.innerHTML = "";
@@ -336,6 +369,7 @@ var BeeGame = (function () {
     }
     byId("command-count").textContent = commands.length + " / " + BeeGame.maxCommands;
     updateButtons();
+    renderGhost();
   }
   function updateButtons() {
     var i, locked = !started || running || won || failed;
@@ -357,19 +391,23 @@ var BeeGame = (function () {
     /* Keep the drawn course while editing or retrying; generate only on entry. */
     if (!currentLevel || currentLevel.number !== levelNumber) { currentLevel = BeeGame.createLevel(levelNumber); }
     var current = course(), x, y, i, routeCell, cell, html = "";
-    for (y = 0; y < current.rows; y += 1) {
-      for (x = 0; x < current.columns; x += 1) {
+    for (y = -2; y < current.rows + 2; y += 1) {
+      for (x = -2; x < current.columns + 2; x += 1) {
+        if (x < 0 || x >= current.columns || y < 0 || y >= current.rows) {
+          html += '<div class="cell margin" style="left:' + ((x + 2) * 100 / 9) + '%;top:' + ((y + 2) * 100 / 9) + '%"></div>';
+          continue;
+        }
         routeCell = false;
         for (i = 0; i < current.path.length; i += 1) { if (current.path[i].x === x && current.path[i].y === y && (current.showPath || (current.partialPath && i % 2 === 0))) { routeCell = true; } }
         cell = "cell" + (routeCell ? " route" : "");
         var rock = false, r;
         for (r = 0; r < current.obstacles.length; r += 1) { if (current.obstacles[r].x === x && current.obstacles[r].y === y) { rock = true; } }
         if (rock) { cell += " obstacle"; }
-        html += '<div class="' + cell + '" style="left:' + (x * 20) + '%;top:' + (y * 20) + '%">' + (rock ? rockArt : '') + '</div>';
+        html += '<div class="' + cell + '" style="left:' + ((x + 2) * 100 / 9) + '%;top:' + ((y + 2) * 100 / 9) + '%">' + (rock ? rockArt : '') + '</div>';
       }
     }
     byId("cells").innerHTML = html;
-    byId("flower").style.left = (current.goal.x * 20) + "%"; byId("flower").style.top = (current.goal.y * 20) + "%";
+    byId("flower").style.left = ((current.goal.x + 2) * 100 / 9) + "%"; byId("flower").style.top = ((current.goal.y + 2) * 100 / 9) + "%";
     byId("game").className = current.allowTurns ? "" : "straight-only";
     byId("left").hidden = !current.allowTurns; byId("right").hidden = !current.allowTurns;
     byId("level-text").textContent = "レベル " + levelNumber;
@@ -418,7 +456,13 @@ var BeeGame = (function () {
     if (index >= commands.length) { finish(BeeGame.outcome(position, course())); return; }
     active = index; renderProgram(); status((index + 1) + "ばんめ：" + labels[commands[index]]);
     var next = BeeGame.step(position, commands[index], course());
-    if (next.outside || next.blocked) { timer = window.setTimeout(function () { finish(next.blocked ? "blocked" : "outside"); }, 650); return; }
+    if (next.blocked) { timer = window.setTimeout(function () { finish("blocked"); }, 650); return; }
+    if (next.outside) {
+      /* Show the overshoot: the bee steps into the paler margin before the dialog opens. */
+      position = next; placeBee(false);
+      timer = window.setTimeout(function () { finish("outside"); }, 700);
+      return;
+    }
     if (commands[index] === "L") { angle -= 90; }
     if (commands[index] === "R") { angle += 90; }
     position = next; placeBee(false);
@@ -433,6 +477,7 @@ var BeeGame = (function () {
   /* A single click listener handles both a mouse click and the browser's touch click. */
   function onClick(id, callback) { byId(id).addEventListener("click", callback, false); }
   byId("flower").innerHTML = flowerArt; byId("bee-direction").innerHTML = beeArt;
+  byId("ghost-direction").innerHTML = beeArt; byId("hint-icon").innerHTML = icon("eye");
   byId("left-icon").innerHTML = icon("L"); byId("forward-icon").innerHTML = icon("F"); byId("right-icon").innerHTML = icon("R");
   byId("go-icon").innerHTML = icon("play"); byId("undo-icon").innerHTML = icon("undo"); byId("restart-icon").innerHTML = icon("reset");
   byId("result-icon").innerHTML = beeArt;
@@ -448,6 +493,11 @@ var BeeGame = (function () {
     if (!started && event.keyCode === 9) { event.preventDefault(); byId("start").focus(); }
   }, false);
   onClick("forward", function () { add("F"); }); onClick("left", function () { add("L"); }); onClick("right", function () { add("R"); }); onClick("go", go);
+  onClick("hint", function () {
+    hint = !hint;
+    byId("hint").setAttribute("aria-pressed", hint ? "true" : "false");
+    renderGhost();
+  });
   onClick("undo", function () { if (started && !running && !won && !failed && commands.length) { editReady(); commands.pop(); renderProgram(); } });
   onClick("restart", function () { if (started && !running && !won && !failed) { loadLevel(); } });
   onClick("next", function () { if (won) { levelNumber += 1; loadLevel(); } });
