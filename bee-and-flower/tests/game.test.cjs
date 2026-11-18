@@ -363,6 +363,8 @@ function makeApp({ startGame = true, random = seededRandom(12345) } = {}) {
 }
 
 function levelNumber(app) { return Number(app.element('level-text').textContent.match(/\d+/)[0]); }
+/* The board draws the 5x5 course centered in a 9x9 grid with a two-cell margin. */
+function boardPct(value) { return ((value + 2) * 100 / 9) + '%'; }
 function assertSuccessDialog(app) {
   assert.equal(app.element('intro').hidden, true);
   assert.equal(app.element('result').hidden, false);
@@ -490,8 +492,8 @@ test('UI progresses beyond every five-level boundary to level 31 without wrappin
     assert.equal(app.commandButtons().length, count);
     app.finish();
     const goal = level.goal;
-    assert.equal(app.element('bee').style.left, (goal.x * 20) + '%');
-    assert.equal(app.element('bee').style.top, (goal.y * 20) + '%');
+    assert.equal(app.element('bee').style.left, boardPct(goal.x));
+    assert.equal(app.element('bee').style.top, boardPct(goal.y));
     assertSuccessDialog(app);
     assert.match(app.element('bee').className, /happy/);
     assert.equal(app.focused(), app.element('next'));
@@ -540,6 +542,9 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   const commands = app.commandButtons().map(button => button.getAttribute('aria-label'));
   const x = parseFloat(app.element('bee').style.left), y = parseFloat(app.element('bee').style.top);
   assert.ok(x >= 0 && x <= 80 && y >= 0 && y <= 80, 'bee must stay inside the drawn board');
+  const gridX = Math.round(x / (100 / 9)) - 2, gridY = Math.round(y / (100 / 9)) - 2;
+  assert.ok(gridX === -1 || gridX === 5 || gridY === -1 || gridY === 5,
+    'an overshoot must show the bee exactly one cell into the margin');
   for (const id of ['forward', 'undo', 'go', 'restart', 'next']) app.click(id);
   app.click('program', { parentNode: app.commandButtons()[0] });
   assert.equal(levelNumber(app), 1);
@@ -555,8 +560,8 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   assert.equal(app.generationCount(), 1, 'retry must reuse the drawn course');
   assert.equal(app.commandButtons().length, 0);
   assert.equal(app.element('command-count').textContent, '0 / 12');
-  assert.equal(app.element('bee').style.left, (start.x * 20) + '%');
-  assert.equal(app.element('bee').style.top, (start.y * 20) + '%');
+  assert.equal(app.element('bee').style.left, boardPct(start.x));
+  assert.equal(app.element('bee').style.top, boardPct(start.y));
   assert.equal(app.element('status').textContent, 'やじるしを おしてね');
   assert.doesNotMatch(app.element('status').className, /retry/);
   assert.equal(app.focused(), app.element('forward'));
@@ -624,8 +629,8 @@ test('UI stops beside a rock and can solve with a new program after retry', () =
   app.add(collision.commands); app.click('go'); app.finish();
   assertFailureDialog(app, /いわ/);
   assert.equal(app.commandButtons().length, collision.commands.length);
-  assert.equal(app.element('bee').style.left, (collision.neighbor.x * 20) + '%');
-  assert.equal(app.element('bee').style.top, (collision.neighbor.y * 20) + '%');
+  assert.equal(app.element('bee').style.left, boardPct(collision.neighbor.x));
+  assert.equal(app.element('bee').style.top, boardPct(collision.neighbor.y));
   assert.equal(app.pendingTimers(), 0);
   app.click('retry');
   assert.equal(levelNumber(app), 11);
@@ -634,7 +639,58 @@ test('UI stops beside a rock and can solve with a new program after retry', () =
   assert.equal(app.element('cells').innerHTML, board);
   assert.deepEqual(app.course(), level, 'retry after hitting a rock must preserve the whole course');
   assert.equal(app.generationCount(), 11);
-  assert.equal(app.element('bee').style.left, (level.start.x * 20) + '%');
-  assert.equal(app.element('bee').style.top, (level.start.y * 20) + '%');
+  assert.equal(app.element('bee').style.left, boardPct(level.start.x));
+  assert.equal(app.element('bee').style.top, boardPct(level.start.y));
   winLevel(app, 11);
+});
+
+test('UI frames the 5x5 course with a paler two-cell margin on every side', () => {
+  const app = makeApp();
+  const cells = app.element('cells').innerHTML;
+  assert.equal((cells.match(/class="cell margin"/g) || []).length, 56,
+    'the margin adds two cells around the course: 9x9 minus 5x5');
+  assert.equal((cells.match(/<div class="cell/g) || []).length, 81,
+    'the drawn grid is 9x9 while the course stays 5x5');
+});
+
+test('hint button plots a translucent ghost where the queued program takes the bee', () => {
+  const app = makeApp();
+  const course = app.course(), start = course.start;
+  assert.equal(app.element('hint').disabled, false);
+  assert.equal(app.element('hint').getAttribute('aria-pressed'), 'false');
+  assert.equal(app.element('ghost').hidden, true);
+  app.add(['F']);
+  assert.equal(app.element('ghost').hidden, true, 'ghost stays hidden until the hint is on');
+  app.click('hint');
+  assert.equal(app.element('hint').getAttribute('aria-pressed'), 'true');
+  assert.equal(app.element('ghost').hidden, false);
+  const dx = [0, 1, 0, -1][start.direction], dy = [-1, 0, 1, 0][start.direction];
+  assert.equal(app.element('ghost').style.left, boardPct(start.x + dx));
+  assert.equal(app.element('ghost').style.top, boardPct(start.y + dy));
+  assert.equal(app.element('ghost-direction').style.transform, 'rotate(' + (start.direction * 90) + 'deg)');
+  app.click('undo');
+  assert.equal(app.element('ghost').hidden, true, 'an empty program has nothing to project');
+  /* Overshoot: the ghost steps into the margin exactly like a real run. */
+  const steps = dx === 1 ? 5 - start.x : dx === -1 ? start.x + 1 : dy === 1 ? 5 - start.y : start.y + 1;
+  app.add(Array(steps).fill('F'));
+  assert.equal(app.element('ghost').hidden, false);
+  assert.equal(app.element('ghost').style.left, boardPct(start.x + dx * steps));
+  assert.equal(app.element('ghost').style.top, boardPct(start.y + dy * steps));
+  app.click('hint');
+  assert.equal(app.element('hint').getAttribute('aria-pressed'), 'false');
+  assert.equal(app.element('ghost').hidden, true);
+});
+
+test('ghost turns with the queued program once turns are unlocked', () => {
+  const app = makeApp();
+  for (let number = 1; number < 6; number += 1) { winLevel(app, number); app.click('next'); }
+  const start = app.course().start;
+  app.click('hint');
+  app.add(['L']);
+  assert.equal(app.element('ghost').hidden, false);
+  assert.equal(app.element('ghost').style.left, boardPct(start.x));
+  assert.equal(app.element('ghost').style.top, boardPct(start.y));
+  assert.equal(app.element('ghost-direction').style.transform, 'rotate(' + (start.direction * 90 - 90) + 'deg)');
+  app.add(['R', 'R']);
+  assert.equal(app.element('ghost-direction').style.transform, 'rotate(' + (start.direction * 90 + 90) + 'deg)');
 });

@@ -40,6 +40,10 @@ svg { display: block; }
 .intro-start { width: 100%; border-radius: 18px; background: #3e7253; color: #fff; font-size: 20px; font-weight: bold; }
 .shell { max-width: 1060px; margin: 0 auto; padding: 24px; }
 .toolbar { display: flex; align-items: center; justify-content: flex-end; min-height: 32px; margin: 0 0 24px; }
+.hint-button { display: flex; align-items: center; background: #fff; border: 2px solid #dbe2d0; border-radius: 18px; padding: 8px 16px; margin-right: 16px; font-size: 16px; font-weight: bold; }
+.hint-button svg { width: 30px; height: 30px; margin-right: 8px; }
+.hint-button[aria-pressed="true"] { background: #ffcf62; border-color: #efbe4e; }
+.bee.ghost { z-index: 1; opacity: .42; pointer-events: none; }
 .level-dots { display: flex; align-items: center; }
 .level-dot { width: 12px; height: 12px; border-radius: 50%; background: #dce2cd; margin: 0 5px; }
 .level-dot.current { background: #477255; width: 20px; height: 20px; }
@@ -150,12 +154,13 @@ svg { display: block; }
   <main>
     <section id="game" aria-label="はちさんをうごかそう" aria-hidden="true">
       <div class="toolbar">
+        <button id="hint" class="hint-button" aria-pressed="false" aria-label="ヒント：ならべた めいれいで ハチが どう うごくか みる"><span id="hint-icon" aria-hidden="true"></span>ヒント</button>
         <div class="level-dots"><span id="level-text" class="level-text"></span><span id="dots" style="display:flex" aria-hidden="true"></span></div>
       </div>
       <div class="play-layout">
         <div class="field-panel">
           <div class="board-frame">
-            <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div>
+            <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="ghost" class="bee ghost" hidden aria-hidden="true"><div id="ghost-direction" class="bee-direction"></div></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div>
           </div>
         </div>
         <div class="control-panel">
@@ -294,7 +299,8 @@ var BeeGame = (function () {
     play: '<path d="M18 9l35 23-35 23Z" fill="currentColor"/>',
     undo: '<path d="M26 12L8 28l18 16V33h11c11 0 14 7 14 18h10c0-19-8-28-24-28H26Z" fill="currentColor"/>',
     reset: '<path d="M47 17a22 22 0 1 0 6 25" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M40 4v22h22Z" fill="currentColor"/>',
-    star: '<path d="M32 5l8 17 19 3-14 14 3 20-16-9-16 9 3-20L5 25l19-3Z" fill="#f6bf42" stroke="#dca12c" stroke-width="2"/>'
+    star: '<path d="M32 5l8 17 19 3-14 14 3 20-16-9-16 9 3-20L5 25l19-3Z" fill="#f6bf42" stroke="#dca12c" stroke-width="2"/>',
+    eye: '<path d="M32 17C18 17 7 32 7 32s11 15 25 15 25-15 25-15S46 17 32 17Z" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="32" cy="32" r="8" fill="currentColor"/>'
   };
   var rockArt = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M12 74L18 44 39 22 70 24 89 53 85 78 58 86 28 84Z" fill="#9ca5a0" stroke="#747f79" stroke-width="4" stroke-linejoin="round"/><path d="M18 44l29 10 23-30M47 54l11 32M47 54l42-1" fill="none" stroke="#bec5bf" stroke-width="4" stroke-linejoin="round"/></svg>';
   var beeArt = '<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="25" cy="49" rx="18" ry="24" fill="#fff" stroke="#86b8b1" stroke-width="3"/><ellipse cx="75" cy="49" rx="18" ry="24" fill="#fff" stroke="#86b8b1" stroke-width="3"/><ellipse cx="50" cy="57" rx="23" ry="32" fill="#ffd05b" stroke="#644b32" stroke-width="3"/><path d="M29 53h42M31 69h38" stroke="#644b32" stroke-width="10"/><circle cx="50" cy="28" r="21" fill="#ffd05b" stroke="#644b32" stroke-width="3"/><path d="M39 10L34 3M61 10l5-7" stroke="#644b32" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="26" r="3" fill="#473e32"/><circle cx="58" cy="26" r="3" fill="#473e32"/><path d="M44 34q6 6 12 0" fill="none" stroke="#473e32" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="32" r="4" fill="#f6976a"/><circle cx="65" cy="32" r="4" fill="#f6976a"/><path d="M50 4l-7 8h14Z" fill="#e07c37"/></svg>';
@@ -303,8 +309,9 @@ var BeeGame = (function () {
   function icon(name) { return '<svg viewBox="0 0 64 64" aria-hidden="true">' + icons[name] + '</svg>'; }
   var levelNumber = 1, currentLevel, commands = [], position, angle = 90;
   var started = false, running = false, won = false, failed = false, active = -1, completed = 0, timer = null;
+  var hint = false;
   var labels = { F: "すすむ", L: "ひだり", R: "みぎ" };
-  var inputs = ["forward", "left", "right", "go", "undo", "restart"];
+  var inputs = ["forward", "left", "right", "go", "undo", "restart", "hint"];
   function course() { return currentLevel; }
   function status(text, retry) {
     byId("status").textContent = text;
@@ -324,6 +331,28 @@ var BeeGame = (function () {
     if (instant) { bee.offsetWidth; bee.style.transition = ""; direction.style.transition = ""; }
   }
   function resetPosition() { position = BeeGame.start(course()); angle = position.direction * 90; placeBee(true); byId("bee").className = "bee"; }
+  /* Project the queued program from the start, stopping where a run would stop. */
+  function ghostState() {
+    var pos = BeeGame.start(course()), ang = pos.direction * 90, i, next;
+    for (i = 0; i < commands.length; i += 1) {
+      next = BeeGame.step(pos, commands[i], course());
+      if (next.blocked) { return { position: pos, angle: ang }; }
+      if (commands[i] === "L") { ang -= 90; }
+      if (commands[i] === "R") { ang += 90; }
+      pos = next;
+      if (next.outside) { return { position: pos, angle: ang }; }
+    }
+    return { position: pos, angle: ang };
+  }
+  function renderGhost() {
+    var ghost = byId("ghost");
+    if (!hint || !started || running || won || failed || commands.length === 0) { ghost.hidden = true; return; }
+    var state = ghostState();
+    ghost.hidden = false;
+    ghost.style.left = ((state.position.x + 2) * 100 / 9) + "%";
+    ghost.style.top = ((state.position.y + 2) * 100 / 9) + "%";
+    byId("ghost-direction").style.transform = "rotate(" + state.angle + "deg)";
+  }
   function renderProgram() {
     var list = byId("program"), i, item, button;
     list.innerHTML = "";
@@ -340,6 +369,7 @@ var BeeGame = (function () {
     }
     byId("command-count").textContent = commands.length + " / " + BeeGame.maxCommands;
     updateButtons();
+    renderGhost();
   }
   function updateButtons() {
     var i, locked = !started || running || won || failed;
@@ -447,6 +477,7 @@ var BeeGame = (function () {
   /* A single click listener handles both a mouse click and the browser's touch click. */
   function onClick(id, callback) { byId(id).addEventListener("click", callback, false); }
   byId("flower").innerHTML = flowerArt; byId("bee-direction").innerHTML = beeArt;
+  byId("ghost-direction").innerHTML = beeArt; byId("hint-icon").innerHTML = icon("eye");
   byId("left-icon").innerHTML = icon("L"); byId("forward-icon").innerHTML = icon("F"); byId("right-icon").innerHTML = icon("R");
   byId("go-icon").innerHTML = icon("play"); byId("undo-icon").innerHTML = icon("undo"); byId("restart-icon").innerHTML = icon("reset");
   byId("result-icon").innerHTML = beeArt;
@@ -462,6 +493,11 @@ var BeeGame = (function () {
     if (!started && event.keyCode === 9) { event.preventDefault(); byId("start").focus(); }
   }, false);
   onClick("forward", function () { add("F"); }); onClick("left", function () { add("L"); }); onClick("right", function () { add("R"); }); onClick("go", go);
+  onClick("hint", function () {
+    hint = !hint;
+    byId("hint").setAttribute("aria-pressed", hint ? "true" : "false");
+    renderGhost();
+  });
   onClick("undo", function () { if (started && !running && !won && !failed && commands.length) { editReady(); commands.pop(); renderProgram(); } });
   onClick("restart", function () { if (started && !running && !won && !failed) { loadLevel(); } });
   onClick("next", function () { if (won) { levelNumber += 1; loadLevel(); } });
