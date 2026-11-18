@@ -386,8 +386,7 @@ function assertFailureDialog(app, reason) {
   assert.equal(app.element('retry').textContent, 'もういっかい ↻');
   assert.equal(app.element('retry').getAttribute('aria-label'), 'おなじレベルでもういっかい');
   assert.equal(app.focused(), app.element('retry'));
-  assert.match(app.element('status').className, /retry/);
-  assert.match(app.element('status').textContent, reason);
+  assert.match(app.element('board').className, /retry/);
   for (const id of ['forward', 'left', 'right', 'go', 'restart']) {
     assert.equal(app.element(id).disabled, true, id + ' must stay locked until retry');
   }
@@ -512,6 +511,12 @@ test('UI highlights each command and turns in place; restart preserves the curre
   for (let number = 1; number < 6; number += 1) { winLevel(app, number); app.click('next'); }
   const level = app.course();
   app.add(level.solution); app.click('go');
+  assert.equal(app.element('countdown').hidden, false);
+  assert.equal(app.element('countdown').textContent, '3');
+  assert.equal(app.tick(), 1000);
+  assert.equal(app.element('countdown').textContent, '2');
+  assert.equal(app.tick(), 1000);
+  assert.equal(app.element('countdown').textContent, '1');
   for (let index = 0; index < level.solution.length; index += 1) {
     const before = { left: app.element('bee').style.left, top: app.element('bee').style.top };
     app.tick();
@@ -562,8 +567,7 @@ test('UI opens a failure dialog at edges and clears the program for a fresh retr
   assert.equal(app.element('command-count').textContent, '0 / 12');
   assert.equal(app.element('bee').style.left, boardPct(start.x));
   assert.equal(app.element('bee').style.top, boardPct(start.y));
-  assert.equal(app.element('status').textContent, 'やじるしを おしてね');
-  assert.doesNotMatch(app.element('status').className, /retry/);
+  assert.doesNotMatch(app.element('board').className, /retry/);
   assert.equal(app.focused(), app.element('forward'));
   for (const id of ['forward', 'restart']) assert.equal(app.element(id).disabled, false);
   for (const id of ['go']) assert.equal(app.element(id).disabled, true);
@@ -717,4 +721,31 @@ test('there is no undo button, and the restart button is labelled やりなお�
   assert.doesNotMatch(html, /intro-undo/);
   const restart = html.match(/<button id="restart"[^>]*>([\s\S]*?)<\/button>/);
   assert.ok(restart && restart[1].includes('やりなおす'), 'restart shows its text label next to the icon');
+});
+
+test('GO counts down 3, 2, 1 on the board before the bee moves', () => {
+  const app = makeApp();
+  const course = app.course();
+  app.add(course.solution);
+  const startLeft = app.element('bee').style.left, startTop = app.element('bee').style.top;
+  app.click('go');
+  assert.equal(app.element('countdown').hidden, false);
+  assert.equal(app.element('countdown').textContent, '3');
+  assert.equal(app.element('bee').style.left, startLeft, 'the bee waits during the countdown');
+  assert.equal(app.element('bee').style.top, startTop);
+  assert.equal(app.tick(), 1000);
+  assert.equal(app.element('countdown').textContent, '2');
+  assert.equal(app.tick(), 1000);
+  assert.equal(app.element('countdown').textContent, '1');
+  assert.equal(app.element('bee').style.left, startLeft);
+  assert.equal(app.tick(), 1000);
+  assert.equal(app.element('countdown').hidden, true);
+  app.finish();
+  assert.equal(app.element('result').hidden, false);
+  assert.equal(app.element('result-title').textContent, 'できたね！');
+});
+
+test('there is no status message area', () => {
+  assert.doesNotMatch(html, /id="status"/);
+  assert.doesNotMatch(html, /やじるしを おしてね/);
 });

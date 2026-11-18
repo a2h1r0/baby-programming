@@ -61,7 +61,7 @@ svg { display: block; }
 .cell.route { background: #ffe066; }
 .cell.margin { background: #f4f2e6; }
 .flower { position: absolute; width: calc(100% / 7 * .85); height: calc(100% / 7 * .85); margin: calc(100% / 7 * .075); }
-.bee { position: absolute; width: calc(100% / 7 * .9); height: calc(100% / 7 * .9); margin: calc(100% / 7 * .05); z-index: 2; transition: left .85s ease-in-out, top .85s ease-in-out; }
+.bee { position: absolute; width: calc(100% / 7 * .9); height: calc(100% / 7 * .9); margin: calc(100% / 7 * .05); z-index: 2; transition: left 1.15s ease-in-out, top 1.15s ease-in-out; }
 .bee-direction { width: 100%; height: 100%; transition: transform .55s ease-in-out; }
 .bee svg, .flower svg { width: 100%; height: 100%; }
 .bee.happy svg { animation: happy .7s ease-in-out infinite alternate; }
@@ -92,8 +92,7 @@ svg { display: block; }
 .result.retry { background: rgba(255, 247, 232, .98); border-color: #e3a057; }
 .result.retry #result-icon svg { width: 64px; height: 64px; color: #c68136; animation: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.status { min-height: 52px; margin-top: 24px; padding: 12px 18px; border-radius: 18px; background: #eaf0de; text-align: center; font-size: 18px; font-weight: bold; }
-.status.retry { background: #ffebce; }
+.countdown { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 120px; font-weight: bold; color: #e8873a; text-shadow: 0 3px 0 #fff, 0 0 24px rgba(255, 255, 255, .85); pointer-events: none; z-index: 5; }
 .cell.obstacle { background: #dce2d0; }
 .cell.obstacle svg { position: absolute; left: 10%; top: 10%; width: 80%; height: 80%; }
 @media (max-width: 1100px) { .shell { padding: 20px 18px; } .field-panel { width: 47%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 350px; height: 350px; max-width: 100%; } }
@@ -160,7 +159,7 @@ svg { display: block; }
       <div class="play-layout">
         <div class="field-panel">
           <div class="board-frame">
-            <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="ghost" class="bee ghost" hidden aria-hidden="true"><div id="ghost-direction" class="bee-direction"></div></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div>
+            <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="ghost" class="bee ghost" hidden aria-hidden="true"><div id="ghost-direction" class="bee-direction"></div></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div><div id="countdown" class="countdown" hidden aria-hidden="true"></div>
           </div>
         </div>
         <div class="control-panel">
@@ -173,14 +172,13 @@ svg { display: block; }
           </div>
           <button id="go" class="go" aria-label="ならべた命令をじっこうする"><span id="go-icon" aria-hidden="true"></span>GO</button>
           <div class="edit-buttons"><button id="restart" class="edit-button" aria-label="命令をぜんぶけしてやりなおす"><span id="restart-icon" aria-hidden="true"></span>やりなおす</button></div>
-          <div id="result" class="result" hidden role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="status">
+          <div id="result" class="result" hidden role="dialog" aria-modal="true" aria-labelledby="result-title">
             <div id="result-icon" aria-hidden="true"></div><h2 id="result-title">できたね！</h2>
             <button id="next" aria-label="つぎのもんだいへ">つぎへ →</button>
             <button id="retry" hidden aria-label="おなじレベルでもういっかい">もういっかい ↻</button>
           </div>
         </div>
       </div>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
     </section>
   </main>
   <noscript>このあそびには JavaScript を有効にしたブラウザが必要です。</noscript>
@@ -311,11 +309,7 @@ var BeeGame = (function () {
   var labels = { F: "すすむ", L: "ひだり", R: "みぎ" };
   var inputs = ["forward", "left", "right", "go", "restart", "hint"];
   function course() { return currentLevel; }
-  function status(text, retry) {
-    byId("status").textContent = text;
-    byId("status").className = "status" + (retry ? " retry" : "");
-    byId("board").className = "board" + (retry ? " retry" : "");
-  }
+
   function placeBee(instant) {
     var bee = byId("bee"), direction = byId("bee-direction");
     if (instant) { bee.style.transition = "none"; direction.style.transition = "none"; }
@@ -425,10 +419,11 @@ var BeeGame = (function () {
     var within = (levelNumber - 1) % 5;
     for (i = 0; i < 5; i += 1) { html += '<span class="level-dot' + (i === within ? " current" : (i < within ? " done" : "")) + '"></span>'; }
     byId("dots").innerHTML = html;
-    resetPosition(); renderProgram(); status("やじるしを おしてね");
+    byId("board").className = "board"; byId("countdown").hidden = true;
+    resetPosition(); renderProgram();
     if (started) { byId("forward").focus(); }
   }
-  function editReady() { active = -1; completed = 0; resetPosition(); status("ならべたら GO！"); }
+  function editReady() { active = -1; completed = 0; resetPosition(); }
   function focusResult(buttonId) {
     if (byId("result").scrollIntoView) { byId("result").scrollIntoView({ block: "center", inline: "nearest" }); }
     byId(buttonId).focus();
@@ -436,7 +431,6 @@ var BeeGame = (function () {
   function add(command) {
     if (!started || running || won || failed || commands.length >= BeeGame.maxCommands || (!course().allowTurns && command !== "F")) { return; }
     editReady(); commands.push(command); renderProgram();
-    if (commands.length === BeeGame.maxCommands) { status("いっぱいだね。GOか、1つ けしてね"); }
   }
   function finish(result) {
     stopTimer(); running = false; active = -1;
@@ -446,7 +440,7 @@ var BeeGame = (function () {
       byId("result-title").textContent = "できたね！";
       byId("result-icon").innerHTML = beeArt;
       byId("next").hidden = false; byId("retry").hidden = true;
-      byId("result").hidden = false; status("できたね！");
+      byId("result").hidden = false;
       focusResult("next");
     } else {
       failed = true;
@@ -455,7 +449,7 @@ var BeeGame = (function () {
       byId("result-icon").innerHTML = icon("reset");
       byId("next").hidden = true; byId("retry").hidden = false;
       byId("result").hidden = false;
-      status(result === "blocked" ? "いわだね！ まわりみち しよう" : result === "outside" ? "もういっかい ためしてみよう" : "あと すこし！ ならべなおして GO！", true);
+      byId("board").className = "board retry";
       focusResult("retry");
     }
     renderProgram();
@@ -464,25 +458,37 @@ var BeeGame = (function () {
     if (!running) { return; }
     timer = null;
     if (index >= commands.length) { finish(BeeGame.outcome(position, course())); return; }
-    active = index; renderProgram(); status((index + 1) + "ばんめ：" + labels[commands[index]]);
+    active = index; renderProgram();
     var next = BeeGame.step(position, commands[index], course());
-    if (next.blocked) { timer = window.setTimeout(function () { finish("blocked"); }, 1000); return; }
+    if (next.blocked) { timer = window.setTimeout(function () { finish("blocked"); }, 1400); return; }
     if (next.outside) {
       /* Show the overshoot: the bee steps into the paler margin before the dialog opens. */
       position = next; placeBee(false);
-      timer = window.setTimeout(function () { finish("outside"); }, 1100);
+      timer = window.setTimeout(function () { finish("outside"); }, 1500);
       return;
     }
     if (commands[index] === "L") { angle -= 90; }
     if (commands[index] === "R") { angle += 90; }
     position = next; placeBee(false);
-    timer = window.setTimeout(function () { completed = index + 1; execute(index + 1); }, 1100);
+    timer = window.setTimeout(function () { completed = index + 1; execute(index + 1); }, 1500);
   }
   function go() {
     if (!started || running || won || failed || commands.length === 0) { return; }
     stopTimer(); resetPosition(); running = true; completed = 0; active = -1; renderProgram();
-    /* Leave a frame at the starting square before the first animated move. */
-    timer = window.setTimeout(function () { execute(0); }, 100);
+    /* Count down 3, 2, 1 on the board before the first animated move. */
+    var count = 3;
+    byId("countdown").textContent = "3";
+    byId("countdown").hidden = false;
+    timer = window.setTimeout(function countDown() {
+      count -= 1;
+      if (count > 0) {
+        byId("countdown").textContent = String(count);
+        timer = window.setTimeout(countDown, 1000);
+      } else {
+        byId("countdown").hidden = true;
+        execute(0);
+      }
+    }, 1000);
   }
   /* A single click listener handles both a mouse click and the browser's touch click. */
   function onClick(id, callback) { byId(id).addEventListener("click", callback, false); }
