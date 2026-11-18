@@ -344,13 +344,24 @@ var BeeGame = (function () {
     return { position: pos, angle: ang };
   }
   function renderGhost() {
-    var ghost = byId("ghost");
+    var ghost = byId("ghost"), direction = byId("ghost-direction");
     if (!hint || !started || running || won || failed || commands.length === 0) { ghost.hidden = true; return; }
-    var state = ghostState();
-    ghost.hidden = false;
+    var state = ghostState(), start;
+    if (ghost.hidden) {
+      /* Appear at the start cell first, so the ghost slides out to the
+         projected cell instead of popping in at the destination. */
+      start = BeeGame.start(course());
+      ghost.hidden = false;
+      ghost.style.transition = "none"; direction.style.transition = "none";
+      ghost.style.left = ((start.x + 1) * 100 / 7) + "%";
+      ghost.style.top = ((start.y + 1) * 100 / 7) + "%";
+      direction.style.transform = "rotate(" + (start.direction * 90) + "deg)";
+      void ghost.offsetWidth;
+      ghost.style.transition = ""; direction.style.transition = "";
+    }
     ghost.style.left = ((state.position.x + 1) * 100 / 7) + "%";
     ghost.style.top = ((state.position.y + 1) * 100 / 7) + "%";
-    byId("ghost-direction").style.transform = "rotate(" + state.angle + "deg)";
+    direction.style.transform = "rotate(" + state.angle + "deg)";
   }
   function renderProgram() {
     var list = byId("program"), i, item, button;
