@@ -420,6 +420,8 @@ var BeeGame = (function () {
     byId("flower").style.left = ((current.goal.x + 1) * 100 / 7) + "%"; byId("flower").style.top = ((current.goal.y + 1) * 100 / 7) + "%";
     byId("game").className = current.allowTurns ? "" : "straight-only";
     byId("left").hidden = !current.allowTurns; byId("right").hidden = !current.allowTurns;
+    byId("hint").hidden = levelNumber >= 16;
+    if (levelNumber >= 16 && hint) { hint = false; byId("hint").setAttribute("aria-pressed", "false"); }
     byId("level-text").textContent = "レベル " + levelNumber;
     html = "";
     var within = (levelNumber - 1) % 5;
