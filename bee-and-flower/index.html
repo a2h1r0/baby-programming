@@ -38,7 +38,7 @@ svg { display: block; }
 .intro-tool svg { width: 24px; height: 24px; margin-right: 8px; }
 .intro-note { margin: 0 0 16px; color: #657969; font-size: 13px; line-height: 1.6; }
 .intro-start { width: 100%; border-radius: 18px; background: #3e7253; color: #fff; font-size: 20px; font-weight: bold; }
-.shell { max-width: 980px; margin: 0 auto; padding: 24px; }
+.shell { max-width: 1060px; margin: 0 auto; padding: 24px; }
 .toolbar { display: flex; align-items: center; justify-content: flex-end; min-height: 32px; margin: 0 0 24px; }
 .level-dots { display: flex; align-items: center; }
 .level-dot { width: 12px; height: 12px; border-radius: 50%; background: #dce2cd; margin: 0 5px; }
@@ -46,21 +46,23 @@ svg { display: block; }
 .level-dot.done { background: #b4cb9d; }
 .level-text { font-size: 15px; margin-right: 12px; }
 .play-layout { display: flex; align-items: center; justify-content: space-between; }
-.field-panel { width: 432px; padding-right: 24px; }
+.field-panel { width: 564px; padding-right: 24px; }
 .board.retry { outline: 5px solid #e3a057; outline-offset: -5px; }
 .board.retry .cell { background: #f4e3ce; }
 .board.retry .cell.route { background: #ffdc9d; }
-.board-frame { position: relative; width: 400px; height: 400px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
+.board.retry .cell.margin { background: #f9efdd; }
+.board-frame { position: relative; width: 540px; height: 540px; background: #fff; border: 6px solid #fff; border-radius: 24px; box-shadow: 0 7px 0 #dfe7d0; overflow: hidden; }
 .board { position: relative; width: 100%; height: 100%; background: #eef1de; }
-.cell { position: absolute; width: 20%; height: 20%; border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
+.cell { position: absolute; width: calc(100% / 9); height: calc(100% / 9); border: 2px solid #fff; background: #e8eedc; border-radius: 9px; }
 .cell.route { background: #fff0ba; }
-.flower { position: absolute; width: 17%; height: 17%; margin: 1.5%; }
-.bee { position: absolute; width: 18%; height: 18%; margin: 1%; z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
+.cell.margin { background: #f4f2e6; }
+.flower { position: absolute; width: calc(100% / 9 * .85); height: calc(100% / 9 * .85); margin: calc(100% / 9 * .075); }
+.bee { position: absolute; width: calc(100% / 9 * .9); height: calc(100% / 9 * .9); margin: calc(100% / 9 * .05); z-index: 2; transition: left .55s ease-in-out, top .55s ease-in-out; }
 .bee-direction { width: 100%; height: 100%; transition: transform .55s ease-in-out; }
 .bee svg, .flower svg { width: 100%; height: 100%; }
 .bee.happy svg { animation: happy .7s ease-in-out infinite alternate; }
 @keyframes happy { from { transform: translateY(0) scale(1); } to { transform: translateY(-9px) scale(1.09); } }
-.control-panel { width: 448px; }
+.control-panel { width: 448px; position: relative; }
 .program { display: flex; flex-wrap: wrap; align-content: flex-start; min-height: 148px; margin: 0 0 12px; padding: 0; list-style: none; }
 .command-slot { width: calc(100% / 6); height: 64px; margin: 4px 0; flex: 0 0 calc(100% / 6); display: flex; justify-content: center; }
 .command-chip { width: 64px; height: 64px; padding: 10px; border-radius: 15px; background: #fff; border: 2px solid #d4dfcc; position: relative; }
@@ -79,7 +81,7 @@ svg { display: block; }
 .edit-buttons { display: flex; margin: 16px -5px 0; }
 .edit-button { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid #dbe2d0; border-radius: 18px; margin: 0 5px; padding: 0 8px; font-size: 16px; font-weight: bold; }
 .edit-button svg { width: 32px; height: 32px; margin: 0; }
-.result { position: absolute; left: 4%; right: 4%; top: 4%; bottom: 4%; z-index: 5; border-radius: 26px; border: 3px solid #f0cf70; background: rgba(255, 253, 239, .97); text-align: center; padding: 24px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.result { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 5; border-radius: 26px; border: 3px solid #f0cf70; background: rgba(255, 253, 239, .97); box-shadow: 0 7px 0 #dfe7d0; text-align: center; padding: 24px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
 .result #result-icon svg { width: 54px; height: 54px; margin: 0 auto; animation: happy .7s ease-in-out infinite alternate; }
 .result h2 { font-size: 30px; margin: 4px 0; }
 .result button { width: 100%; border-radius: 16px; margin: 3px 0; font-size: 19px; font-weight: bold; background: #3e7253; color: #fff; }
@@ -90,9 +92,9 @@ svg { display: block; }
 .status.retry { background: #ffebce; }
 .cell.obstacle { background: #dce2d0; }
 .cell.obstacle svg { position: absolute; left: 10%; top: 10%; width: 80%; height: 80%; }
-@media (max-width: 980px) { .shell { padding: 20px 18px; } .field-panel { width: 44%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 360px; height: 360px; max-width: 100%; } }
-@media (max-height: 755px) and (min-width: 860px) { .shell { padding-top: 16px; padding-bottom: 16px; } .toolbar { margin-bottom: 20px; } .board-frame { width: 350px; height: 350px; } .direction-button { height: 82px; } .go { height: 68px; } }
-@media (max-width: 859px) { .shell { padding: 16px 12px; } .toolbar { margin-bottom: 20px; } .play-layout { flex-wrap: wrap; justify-content: center; } .field-panel { width: 100%; padding: 0; } .board-frame { width: 280px; height: 280px; margin: auto; } .control-panel { width: 448px; max-width: 100%; margin-top: 24px; } .result { padding: 12px; gap: 4px; } .result #result-icon svg { width: 44px; height: 44px; } .result h2 { font-size: 26px; } }
+@media (max-width: 1100px) { .shell { padding: 20px 18px; } .field-panel { width: 47%; padding-right: 16px; } .control-panel { width: 49%; } .board-frame { width: 450px; height: 450px; max-width: 100%; } }
+@media (max-height: 755px) and (min-width: 860px) { .shell { padding-top: 16px; padding-bottom: 16px; } .toolbar { margin-bottom: 20px; } .board-frame { width: 486px; height: 486px; max-width: 100%; } .direction-button { height: 82px; } .go { height: 68px; } }
+@media (max-width: 859px) { .shell { padding: 16px 12px; } .toolbar { margin-bottom: 20px; } .play-layout { flex-wrap: wrap; justify-content: center; } .field-panel { width: 100%; padding: 0; } .board-frame { width: 396px; height: 396px; max-width: 100%; margin: auto; } .control-panel { width: 448px; max-width: 100%; margin-top: 24px; } .result { padding: 12px; gap: 4px; } .result #result-icon svg { width: 44px; height: 44px; } .result h2 { font-size: 26px; } }
 @media (max-width: 439px) { .command-slot { width: 25%; flex-basis: 25%; } .program { min-height: 216px; } .level-text { font-size: 14px; margin-right: 4px; } .level-dot { margin: 0 3px; } }
 @media (max-width: 600px) { .intro { padding: 12px; } .intro-card { padding: 20px; border-radius: 22px; } .intro h1 { font-size: 25px; } .intro-bee { width: 52px; height: 52px; flex-basis: 52px; } .intro-lead { margin-bottom: 16px; } }
 @media (prefers-reduced-motion: reduce) { .bee, .bee-direction { transition: none; } .bee.happy svg, .result #result-icon svg { animation: none; } }
@@ -154,11 +156,6 @@ svg { display: block; }
         <div class="field-panel">
           <div class="board-frame">
             <div id="board" class="board" role="img" aria-label="はちさんとおはなのマス目"><div id="cells"></div><div id="flower" class="flower" aria-hidden="true"></div><div id="bee" class="bee" aria-hidden="true"><div id="bee-direction" class="bee-direction"></div></div></div>
-            <div id="result" class="result" hidden role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="status">
-              <div id="result-icon" aria-hidden="true"></div><h2 id="result-title">できたね！</h2>
-              <button id="next" aria-label="つぎのもんだいへ">つぎへ →</button>
-              <button id="retry" hidden aria-label="おなじレベルでもういっかい">もういっかい ↻</button>
-            </div>
           </div>
         </div>
         <div class="control-panel">
@@ -171,6 +168,11 @@ svg { display: block; }
           </div>
           <button id="go" class="go" aria-label="ならべた命令をじっこうする"><span id="go-icon" aria-hidden="true"></span>GO</button>
           <div class="edit-buttons"><button id="undo" class="edit-button" aria-label="さいごの命令を1つけす"><span id="undo-icon" aria-hidden="true"></span></button><button id="restart" class="edit-button" aria-label="命令をぜんぶけしてやりなおす"><span id="restart-icon" aria-hidden="true"></span></button></div>
+          <div id="result" class="result" hidden role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="status">
+            <div id="result-icon" aria-hidden="true"></div><h2 id="result-title">できたね！</h2>
+            <button id="next" aria-label="つぎのもんだいへ">つぎへ →</button>
+            <button id="retry" hidden aria-label="おなじレベルでもういっかい">もういっかい ↻</button>
+          </div>
         </div>
       </div>
       <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -312,9 +314,11 @@ var BeeGame = (function () {
   function placeBee(instant) {
     var bee = byId("bee"), direction = byId("bee-direction");
     if (instant) { bee.style.transition = "none"; direction.style.transition = "none"; }
-    bee.style.left = (position.x * 20) + "%"; bee.style.top = (position.y * 20) + "%";
+    bee.style.left = ((position.x + 2) * 100 / 9) + "%"; bee.style.top = ((position.y + 2) * 100 / 9) + "%";
     direction.style.transform = "rotate(" + angle + "deg)";
-    var description = "5かける5のマス目。はちさんは左から" + (position.x + 1) + "、上から" + (position.y + 1) + "、" + ["うえ", "みぎ", "した", "ひだり"][position.direction] + "むき。おはなは左から" + (course().goal.x + 1) + "、上から" + (course().goal.y + 1), r;
+    var beePlace = (position.x < 0 || position.x >= course().columns || position.y < 0 || position.y >= course().rows)
+      ? "マスのそと" : "左から" + (position.x + 1) + "、上から" + (position.y + 1);
+    var description = "5かける5のマス目。はちさんは" + beePlace + "、" + ["うえ", "みぎ", "した", "ひだり"][position.direction] + "むき。おはなは左から" + (course().goal.x + 1) + "、上から" + (course().goal.y + 1), r;
     for (r = 0; r < course().obstacles.length; r += 1) { description += "。いわは左から" + (course().obstacles[r].x + 1) + "、上から" + (course().obstacles[r].y + 1); }
     byId("board").setAttribute("aria-label", description);
     if (instant) { bee.offsetWidth; bee.style.transition = ""; direction.style.transition = ""; }
@@ -357,19 +361,23 @@ var BeeGame = (function () {
     /* Keep the drawn course while editing or retrying; generate only on entry. */
     if (!currentLevel || currentLevel.number !== levelNumber) { currentLevel = BeeGame.createLevel(levelNumber); }
     var current = course(), x, y, i, routeCell, cell, html = "";
-    for (y = 0; y < current.rows; y += 1) {
-      for (x = 0; x < current.columns; x += 1) {
+    for (y = -2; y < current.rows + 2; y += 1) {
+      for (x = -2; x < current.columns + 2; x += 1) {
+        if (x < 0 || x >= current.columns || y < 0 || y >= current.rows) {
+          html += '<div class="cell margin" style="left:' + ((x + 2) * 100 / 9) + '%;top:' + ((y + 2) * 100 / 9) + '%"></div>';
+          continue;
+        }
         routeCell = false;
         for (i = 0; i < current.path.length; i += 1) { if (current.path[i].x === x && current.path[i].y === y && (current.showPath || (current.partialPath && i % 2 === 0))) { routeCell = true; } }
         cell = "cell" + (routeCell ? " route" : "");
         var rock = false, r;
         for (r = 0; r < current.obstacles.length; r += 1) { if (current.obstacles[r].x === x && current.obstacles[r].y === y) { rock = true; } }
         if (rock) { cell += " obstacle"; }
-        html += '<div class="' + cell + '" style="left:' + (x * 20) + '%;top:' + (y * 20) + '%">' + (rock ? rockArt : '') + '</div>';
+        html += '<div class="' + cell + '" style="left:' + ((x + 2) * 100 / 9) + '%;top:' + ((y + 2) * 100 / 9) + '%">' + (rock ? rockArt : '') + '</div>';
       }
     }
     byId("cells").innerHTML = html;
-    byId("flower").style.left = (current.goal.x * 20) + "%"; byId("flower").style.top = (current.goal.y * 20) + "%";
+    byId("flower").style.left = ((current.goal.x + 2) * 100 / 9) + "%"; byId("flower").style.top = ((current.goal.y + 2) * 100 / 9) + "%";
     byId("game").className = current.allowTurns ? "" : "straight-only";
     byId("left").hidden = !current.allowTurns; byId("right").hidden = !current.allowTurns;
     byId("level-text").textContent = "レベル " + levelNumber;
@@ -418,7 +426,13 @@ var BeeGame = (function () {
     if (index >= commands.length) { finish(BeeGame.outcome(position, course())); return; }
     active = index; renderProgram(); status((index + 1) + "ばんめ：" + labels[commands[index]]);
     var next = BeeGame.step(position, commands[index], course());
-    if (next.outside || next.blocked) { timer = window.setTimeout(function () { finish(next.blocked ? "blocked" : "outside"); }, 650); return; }
+    if (next.blocked) { timer = window.setTimeout(function () { finish("blocked"); }, 650); return; }
+    if (next.outside) {
+      /* Show the overshoot: the bee steps into the paler margin before the dialog opens. */
+      position = next; placeBee(false);
+      timer = window.setTimeout(function () { finish("outside"); }, 700);
+      return;
+    }
     if (commands[index] === "L") { angle -= 90; }
     if (commands[index] === "R") { angle += 90; }
     position = next; placeBee(false);
